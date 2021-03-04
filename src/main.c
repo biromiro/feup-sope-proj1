@@ -9,7 +9,7 @@ int main(int argc, char* argv[], char* envp[]) {
 
     get_status(argv[1], &status);
 
-    if (is_dir(&status)) open_dir(argv[1]);
+    if (is_dir(&status)) open_dir(argv[1], 0);
 
     return 0;
 }
