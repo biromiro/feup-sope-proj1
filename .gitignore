@@ -46,6 +46,7 @@
 *.mod*
 *.cmd
 .tmp_versions/
+.clang-format
 modules.order
 Module.symvers
 Mkfile.old

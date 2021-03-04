@@ -17,4 +17,4 @@ $(OBJ)/%.o: $(SRC)/%.c
 	$(CC) -I$(SRC) $(flags)  -c $< -o $@
 
 clean:
-	rm -f $(OBJ)/*.o $(OBJ)/*.json xmod 
+	rm -f $(OBJ)/*.o xmod 
