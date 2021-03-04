@@ -6,6 +6,8 @@
 #include <string.h>
 #include <unistd.h>
 
+#include "error/parse_error.h"
+
 typedef struct cmd_args {
     bool verbose;
     bool verbose_on_modify;
