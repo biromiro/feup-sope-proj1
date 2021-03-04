@@ -1,0 +1,1 @@
+int open_dir(const char* pathname);
