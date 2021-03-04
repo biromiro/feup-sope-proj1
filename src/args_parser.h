@@ -1,11 +1,10 @@
 #pragma once
 
-#include <stdlib.h>
 #include <stdbool.h>
 #include <stdio.h>
+#include <stdlib.h>
 
-typedef struct cmd_args
-{
+typedef struct cmd_args {
     bool verbose;
     bool verbose_on_modidy;
     bool recursive;

@@ -2,8 +2,7 @@
 
 #include "args_parser.h"
 
-int main(int argc, char *argv[], char *envp[])
-{
+int main(int argc, char *argv[], char *envp[]) {
     printf("Main!\n");
     cmd_args_t args;
     parse_args(&args, argc, argv, envp);
