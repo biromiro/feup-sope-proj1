@@ -7,6 +7,9 @@
 *.obj
 *.elf
 
+# Output program
+xmod
+
 # Linker output
 *.ilk
 *.map
