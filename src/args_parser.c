@@ -1,12 +1,23 @@
 #include "args_parser.h"
 
+/**
+ * @brief Parse the options
+ * The options are optional. This function will fill a cmd_args_t with valuable information.
+ * In case of success returns 0 and if an option is not valid, returns the invalida character used.
+ * It also returns the index for the next parser to evaluate
+ * 
+ * @param [out] args struct to return information about the options
+ * @param [out] last_arg index of the the argument for the next parser to evaluate
+ * @param argc
+ * @param argv   
+ */
 int parse_options(cmd_args_t *args, int *last_arg, int argc, char *argv[]) {
     const char *valid_args = "vcRrwx";
     *last_arg = 1;
     for (size_t i = 1; i < argc; i++) {
         const char *str = argv[i];
         const size_t str_size = strlen(str);
-        char curr[1];
+        char curr[] = "";
         if (str[0] == '-') {
             for (size_t j = 1; j < str_size; j++) {
                 curr[0] = str[j];
@@ -29,7 +40,8 @@ int parse_options(cmd_args_t *args, int *last_arg, int argc, char *argv[]) {
                             break;
                         default:
                             // Last arg will be set to the current argv index
-                            // It can be a mode flag
+                            // It can be a mode flag that will be analysed
+                            // in the next parser
                             return 0;
                             break;
                     }
@@ -50,7 +62,7 @@ int parse_args(cmd_args_t *args, int argc, char *argv[], char *envp[]) {
     int opt, index;
     if ((opt = parse_options(args, &index, argc, argv)) != 0) {
         fprintf(stderr,
-                "%c invalid option. Usage: ... inserir usage aqui\n", opt);
+                "xmod: invalid mode: '-%c'\n", opt);
         exit(BAD_OPTION);
     }
     printf("Current index: %d -> %s\n", index, argv[index]);
