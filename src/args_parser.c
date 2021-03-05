@@ -4,72 +4,83 @@ int parse_args(cmd_args_t *args, int argc, char *argv[], char *envp[]) {
     args->recursive = true;
     args->verbose = false;
     args->verbose_on_modidy = true;
-    mode_t val = parse_mode(argv[1]);
-    if (val == ERROR_FLAG)
+    perm_operation val = parse_mode(argv[1]);
+    if (val.invalid)
         printf("something's wrong!");
     else
-        printf("%o", val);
+        printf("%o", val.permission_octal);
     return 0;
 }
 
-mode_t parse_mode(char *mode) {
+perm_changes create_perm_changes(perm_change_type type_u, perm_change_type type_g, perm_change_type type_o) {
+    perm_changes permissions;
+
+    permissions.type_u = type_u;
+    permissions.type_g = type_g;
+    permissions.type_o = type_o;
+
+    return permissions;
+}
+
+perm_operation parse_mode(char *mode) {
     char *endptr;
     strtol(mode, &endptr, 8);
     if (*endptr != '\0') {
-        printf("text mode!\n");
         return parse_text_mode(mode);
     } else {
-        return parse_octal_mode(mode);
+        return parse_octal_mode(mode, create_perm_changes(SUBSTITUTE, SUBSTITUTE, SUBSTITUTE));
     }
 }
 
-mode_t parse_octal_mode(char *mode) {
+perm_operation parse_octal_mode(char *mode, perm_changes types) {
+    perm_operation perms;
     mode_t code = strtol(mode, NULL, 8);
-    if (errno == EINVAL)
-        return ERROR_FLAG;
-    else
-        return code;
+    if (errno == EINVAL) {
+        perms.invalid = true;
+        return perms;
+    } else {
+        perms.permission_octal = code;
+        perms.permission_types = types;
+        perms.invalid = false;
+        return perms;
+    }
 }
 
-mode_t parse_text_mode(char *mode) {
-    printf("hello");
-    char octal_val[5];
-    char *begin_of_perm = strtok(mode, ",");
-    //printf("%s", begin_of_perm);
-    while (begin_of_perm != NULL) {
-        char *curr_str = malloc(sizeof(char) * strlen(begin_of_perm));
-        sprintf(curr_str, "%s", begin_of_perm);
-        //printf("%s", curr_str);
-        char new[1];
-        new[0] = parse_user_type_perms(curr_str);
+perm_operation parse_text_mode(char *mode) {
+    char octal_val[5] = "0000";
+    char *begin_of_perm = strtok_r(mode, ",", &mode);
 
-        switch (curr_str[0]) {
+    perm_change_type type_u = UNCHANGED, type_g = UNCHANGED, type_o = UNCHANGED;
+
+    while (begin_of_perm != NULL) {
+        char new_octal_val = parse_user_type_perms(begin_of_perm);
+        if (new_octal_val == ERROR_FLAG) begin_of_perm[0] = ' ';  //goes to default
+        switch (begin_of_perm[0]) {
             case 'u':
-                octal_val[1] = new[0];
+                octal_val[1] = new_octal_val;
+                type_u = (begin_of_perm[1] == '=' ? SUBSTITUTE : (begin_of_perm[1] == '+' ? ADD : REMOVE));
                 break;
             case 'g':
-                octal_val[2] = new[0];
+                octal_val[2] = new_octal_val;
+                type_g = (begin_of_perm[1] == '=' ? SUBSTITUTE : (begin_of_perm[1] == '+' ? ADD : REMOVE));
                 break;
             case 'o':
-                octal_val[3] = new[0];
+                octal_val[3] = new_octal_val;
+                type_o = (begin_of_perm[1] == '=' ? SUBSTITUTE : (begin_of_perm[1] == '+' ? ADD : REMOVE));
                 break;
-            default:
-                return -1;
+            default: {
+                perm_operation perms;
+                perms.invalid = true;
+                return perms;
+            }
         }
-
-        strcat(octal_val, new);
-        free(curr_str);
-        begin_of_perm = strtok(NULL, ",");
+        begin_of_perm = strtok_r(NULL, ",", &mode);
     }
-
-    octal_val[0] = '0';
-    octal_val[4] = '\0';
-    return parse_octal_mode(octal_val);
+    return parse_octal_mode(octal_val, create_perm_changes(type_u, type_g, type_o));
 }
 
 char parse_user_type_perms(char *user_perms) {
-    if (strlen(user_perms) < 3 || user_perms[1] != '=') return ERROR_FLAG;
-
+    if (strlen(user_perms) < 3 || (user_perms[1] != '=' && user_perms[1] != '+' && user_perms[1] != '-')) return ERROR_FLAG;
     char *begin_of_perm = strtok(user_perms, "=");
     if (user_perms[0] == 'u' || user_perms[0] == 'g' || user_perms[0] == 'o') {
         begin_of_perm = strtok(NULL, "=");
