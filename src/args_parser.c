@@ -126,16 +126,27 @@ char parse_user_type_perms(char *user_perms) {
 char get_sum_perms(char *perms) {
     int sum = 0;
 
+    char used[4] = "";
+
     for (int i = 0; i < strlen(perms); ++i) {
         switch (perms[i]) {
             case 'r':
-                sum += READ_VAL;
+                if (strstr(used, "r") == NULL) {
+                    sum += READ_VAL;
+                    strcat(used, "r");
+                }
                 break;
             case 'w':
-                sum += WRITE_VAL;
+                if (strstr(used, "w") == NULL) {
+                    sum += WRITE_VAL;
+                    strcat(used, "w");
+                }
                 break;
             case 'x':
-                sum += EXEC_VAL;
+                if (strstr(used, "x") == NULL) {
+                    sum += EXEC_VAL;
+                    strcat(used, "x");
+                }
                 break;
             default:
                 return ERROR_FLAG;
