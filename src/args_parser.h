@@ -47,7 +47,6 @@ typedef struct {
 typedef struct {
     mode_t permission_octal;
     perm_changes permission_types;
-    bool invalid;
 } perm_operation;
 
 /**
@@ -74,7 +73,7 @@ perm_changes create_perm_changes(perm_change_type type_u, perm_change_type type_
  * 
  * @param mode the mode to parse
  */
-perm_operation parse_mode(char *mode);
+int parse_mode(char *mode, perm_operation *perms);
 
 /**
  * Parses a given mode in octal into a perm_operation object.
@@ -82,14 +81,14 @@ perm_operation parse_mode(char *mode);
  * @param mode the mode to parse
  * @param type the permission change types for the users
  */
-perm_operation parse_octal_mode(char *mode, perm_changes type);
+int parse_octal_mode(char *mode, perm_changes type, perm_operation *perms);
 
 /**
  * Parses a given mode given in text mode into a perm_operation object.
  * 
  * @param mode the mode to parse
  */
-perm_operation parse_text_mode(char *mode);
+int parse_text_mode(char *mode, perm_operation *perms);
 
 /**
  * Reads a defined user permission change and returns its value.
