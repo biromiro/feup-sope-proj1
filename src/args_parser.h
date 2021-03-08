@@ -14,6 +14,9 @@
 #define WRITE_VAL 2
 #define EXEC_VAL 1
 
+#define VALID_USER(user) (user == 'u' || user == 'g' || user == 'o' || user == 'a')
+#define VALID_PERM(perm) (perm == '=' || perm == '+' || perm == '-')
+
 typedef struct cmd_args {
     bool verbose;
     bool verbose_on_modidy;

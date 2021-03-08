@@ -14,7 +14,9 @@ int parse_args(cmd_args_t *args, int argc, char *argv[], char *envp[]) {
     return 0;
 }
 
-perm_changes create_perm_changes(perm_change_type type_u, perm_change_type type_g, perm_change_type type_o) {
+perm_changes create_perm_changes(perm_change_type type_u,
+                                 perm_change_type type_g,
+                                 perm_change_type type_o) {
     perm_changes permissions;
 
     permissions.type_u = type_u;
@@ -24,18 +26,35 @@ perm_changes create_perm_changes(perm_change_type type_u, perm_change_type type_
     return permissions;
 }
 
+perm_change_type parse_perm_change_type(char del) {
+    switch (del) {
+        case '=':
+            return SUBSTITUTE;
+        case '-':
+            return REMOVE;
+        case '+':
+            return ADD;
+        default:
+            return UNCHANGED;
+            break;
+    }
+}
+
 int parse_mode(char *mode, perm_operation *perm) {
     if (!isdigit(mode[0])) {
         return parse_text_mode(mode, perm);
     } else {
-        return parse_octal_mode(mode, create_perm_changes(SUBSTITUTE, SUBSTITUTE, SUBSTITUTE), perm);
+        return parse_octal_mode(
+            mode,
+            create_perm_changes(SUBSTITUTE, SUBSTITUTE, SUBSTITUTE),
+            perm);
     }
 }
 
 int parse_octal_mode(char *mode, perm_changes types, perm_operation *perms) {
     char *end;
     mode_t code = strtol(mode, &end, 8);
-    if (end != NULL || errno == EINVAL) {
+    if (*end != '\0' || errno == EINVAL) {
         return ERROR_FLAG;
     } else {
         perms->permission_octal = code;
@@ -53,25 +72,27 @@ int parse_text_mode(char *mode, perm_operation *perms) {
     while (begin_of_perm != NULL) {
         char user = begin_of_perm[0], delimiter = begin_of_perm[1];
         char new_octal_val = parse_user_type_perms(begin_of_perm);
-        if (new_octal_val == ERROR_FLAG) user = ' ';  //goes to default
+
+        if (new_octal_val == ERROR_FLAG) return ERROR_FLAG;
+
         switch (user) {
             case 'u':
                 octal_val[1] = new_octal_val;
-                type_u = (delimiter == '=' ? SUBSTITUTE : (delimiter == '+' ? ADD : REMOVE));
+                type_u = parse_perm_change_type(delimiter);
                 break;
             case 'g':
                 octal_val[2] = new_octal_val;
-                type_g = (delimiter == '=' ? SUBSTITUTE : (delimiter == '+' ? ADD : REMOVE));
+                type_g = parse_perm_change_type(delimiter);
                 break;
             case 'o':
                 octal_val[3] = new_octal_val;
-                type_o = (delimiter == '=' ? SUBSTITUTE : (delimiter == '+' ? ADD : REMOVE));
+                type_o = parse_perm_change_type(delimiter);
                 break;
             case 'a':
                 octal_val[1] = new_octal_val;
                 octal_val[2] = new_octal_val;
                 octal_val[3] = new_octal_val;
-                type_u = (delimiter == '=' ? SUBSTITUTE : (delimiter == '+' ? ADD : REMOVE));
+                type_u = parse_perm_change_type(delimiter);
                 type_g = type_u;
                 type_o = type_u;
 
@@ -82,7 +103,8 @@ int parse_text_mode(char *mode, perm_operation *perms) {
         }
         begin_of_perm = strtok_r(NULL, ",", &mode);
     }
-    return parse_octal_mode(octal_val, create_perm_changes(type_u, type_g, type_o), perms);
+    return parse_octal_mode(
+        octal_val, create_perm_changes(type_u, type_g, type_o), perms);
 }
 
 char parse_user_type_perms(char *user_perms) {
@@ -91,14 +113,14 @@ char parse_user_type_perms(char *user_perms) {
 
     sprintf(delimiter_string, "%c", delimiter);
 
-    if (strlen(user_perms) < 3 || (delimiter != '=' && delimiter != '+' && delimiter != '-')) return ERROR_FLAG;
-
-    if (user == 'u' || user == 'g' || user == 'o' || user == 'a') {
+    if (strlen(user_perms) >= 3 &&
+        VALID_PERM(delimiter) &&
+        VALID_USER(user)) {
         char *perms = strtok_r(user_perms, delimiter_string, &user_perms);
         perms = strtok_r(NULL, delimiter_string, &user_perms);
         return get_sum_perms(perms);
-    } else
-        return ERROR_FLAG;
+    }
+    return ERROR_FLAG;
 }
 
 char get_sum_perms(char *perms) {
