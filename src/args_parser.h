@@ -8,6 +8,8 @@
 
 #include "error/parse_error.h"
 
+#define USAGE "USAGE: xmod [-vcR] MODE/OCTAL file/dir"
+
 typedef struct cmd_args {
     bool verbose;
     bool verbose_on_modify;

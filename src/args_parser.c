@@ -62,7 +62,7 @@ int parse_args(cmd_args_t *args, int argc, char *argv[], char *envp[]) {
     int opt, index;
     if ((opt = parse_options(args, &index, argc, argv)) != 0) {
         fprintf(stderr,
-                "xmod: invalid mode: '-%c'\n", opt);
+                "xmod: invalid option: '-%c'\n%s\n", opt, USAGE);
         exit(BAD_OPTION);
     }
     printf("Current index: %d -> %s\n", index, argv[index]);
