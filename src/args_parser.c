@@ -7,8 +7,9 @@ int parse_args(cmd_args_t *args, int argc, char *argv[], char *envp[]) {
     perm_operation val = parse_mode(argv[1]);
     if (val.invalid)
         printf("something's wrong!");
-    else
-        printf("%o", val.permission_octal);
+    else {
+        printf("%o, %d, %d, %d, %d\n", val.permission_octal, val.invalid, val.permission_types.type_u, val.permission_types.type_g, val.permission_types.type_o);
+    }
     return 0;
 }
 
@@ -24,7 +25,7 @@ perm_changes create_perm_changes(perm_change_type type_u, perm_change_type type_
 
 perm_operation parse_mode(char *mode) {
     char *endptr;
-    strtol(mode, &endptr, 8);
+    strtol(mode, &endptr, 8);  //isdigit()
     if (*endptr != '\0') {
         return parse_text_mode(mode);
     } else {
@@ -53,20 +54,30 @@ perm_operation parse_text_mode(char *mode) {
     perm_change_type type_u = UNCHANGED, type_g = UNCHANGED, type_o = UNCHANGED;
 
     while (begin_of_perm != NULL) {
+        char user = begin_of_perm[0], delimiter = begin_of_perm[1];
         char new_octal_val = parse_user_type_perms(begin_of_perm);
-        if (new_octal_val == ERROR_FLAG) begin_of_perm[0] = ' ';  //goes to default
-        switch (begin_of_perm[0]) {
+        if (new_octal_val == ERROR_FLAG) delimiter = ' ';  //goes to default
+        switch (user) {
             case 'u':
                 octal_val[1] = new_octal_val;
-                type_u = (begin_of_perm[1] == '=' ? SUBSTITUTE : (begin_of_perm[1] == '+' ? ADD : REMOVE));
+                type_u = (delimiter == '=' ? SUBSTITUTE : (delimiter == '+' ? ADD : REMOVE));
                 break;
             case 'g':
                 octal_val[2] = new_octal_val;
-                type_g = (begin_of_perm[1] == '=' ? SUBSTITUTE : (begin_of_perm[1] == '+' ? ADD : REMOVE));
+                type_g = (delimiter == '=' ? SUBSTITUTE : (delimiter == '+' ? ADD : REMOVE));
                 break;
             case 'o':
                 octal_val[3] = new_octal_val;
-                type_o = (begin_of_perm[1] == '=' ? SUBSTITUTE : (begin_of_perm[1] == '+' ? ADD : REMOVE));
+                type_o = (delimiter == '=' ? SUBSTITUTE : (delimiter == '+' ? ADD : REMOVE));
+                break;
+            case 'a':
+                octal_val[1] = new_octal_val;
+                octal_val[2] = new_octal_val;
+                octal_val[3] = new_octal_val;
+                type_u = (delimiter == '=' ? SUBSTITUTE : (delimiter == '+' ? ADD : REMOVE));
+                type_g = type_u;
+                type_o = type_u;
+
                 break;
             default: {
                 perm_operation perms;
@@ -80,11 +91,17 @@ perm_operation parse_text_mode(char *mode) {
 }
 
 char parse_user_type_perms(char *user_perms) {
-    if (strlen(user_perms) < 3 || (user_perms[1] != '=' && user_perms[1] != '+' && user_perms[1] != '-')) return ERROR_FLAG;
-    char *begin_of_perm = strtok(user_perms, "=");
-    if (user_perms[0] == 'u' || user_perms[0] == 'g' || user_perms[0] == 'o') {
-        begin_of_perm = strtok(NULL, "=");
-        return get_sum_perms(begin_of_perm);
+    char delimiter = user_perms[1], user = user_perms[0];
+    char delimiter_string[2];
+
+    sprintf(delimiter_string, "%c", delimiter);
+
+    if (strlen(user_perms) < 3 || (delimiter != '=' && delimiter != '+' && delimiter != '-')) return ERROR_FLAG;
+
+    if (user == 'u' || user == 'g' || user == 'o' || user == 'a') {
+        char *perms = strtok_r(user_perms, delimiter_string, &user_perms);
+        perms = strtok_r(NULL, delimiter_string, &user_perms);
+        return get_sum_perms(perms);
     } else
         return ERROR_FLAG;
 }
