@@ -12,18 +12,20 @@
  * @param argv   
  */
 int parse_options(cmd_args_t *args, int *last_arg, int argc, char *argv[]) {
-    const char *valid_args = "vcRrwx";
+    const char *valid_args = "vcR";
     *last_arg = 1;
     for (size_t i = 1; i < argc; i++) {
         const char *str = argv[i];
         const size_t str_size = strlen(str);
         char curr[] = "";
+        // Options can be in multiple strings: -v -R is valid
         if (str[0] == '-') {
             for (size_t j = 1; j < str_size; j++) {
                 curr[0] = str[j];
 
-                // Verifies if it is a valid flag, even if it's from options
-                // Shouldn't give an error on xmod -v -x file for example
+                // Options should override previous values that are in conflict
+                // -cv: v should override c
+                // -vc: c should override v
                 if (strstr(valid_args, curr) == NULL) {
                     return str[j];
                 } else {
@@ -36,7 +38,8 @@ int parse_options(cmd_args_t *args, int *last_arg, int argc, char *argv[]) {
                             args->verbose_on_modify = false;
                             break;
                         case 'c':
-                            args->verbose_on_modify = !args->verbose;
+                            args->verbose = false;
+                            args->verbose_on_modify = true;
                             break;
                         default:
                             // Last arg will be set to the current argv index
