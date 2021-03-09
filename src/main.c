@@ -9,7 +9,7 @@ int main(int argc, char* argv[], char* envp[]) {
 
     get_status(argv[1], &status);
 
-    if (is_dir(&status)) open_dir(argv[1], 0);
+    if (is_dir(&status)) recursive_change_mod(argv[1]);
 
     return 0;
 }

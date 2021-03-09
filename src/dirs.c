@@ -8,9 +8,18 @@
 #include <string.h>
 #include <unistd.h>
 
-// used find ..  -printf '%M %p\n' | wc -l, and  ./xmod .. | wc -l, to test if
-// this func works correctly
-int open_dir(const char* pathname, uint8_t depth) {
+/**
+ * @brief Changes the permissions of all files inside a directory, recursively
+ *opening directories inside it.
+ *
+ * @param[in] pathname string containing the pathname of the directory.
+ * @param depth depth of the recursion.
+ *
+ * @return an error value.
+ **/
+int recursive_change_mod_inner(const char* pathname, uint8_t depth) {
+    // used find ..  -printf '%M %p\n' | wc -l, and  ./xmod .. | wc -l, to test
+    // if this func works correctly
     DIR* directory = opendir(pathname);
 
     if (directory == NULL) {
@@ -19,7 +28,7 @@ int open_dir(const char* pathname, uint8_t depth) {
     }
 
     // printf("IN %s-------\n", pathname);
-    // <<<<<<<<< change permission of folder here
+    // <<<<<<<<< change permission of dir here
 
     struct dirent* directory_entry;
     struct stat status;
@@ -53,7 +62,7 @@ int open_dir(const char* pathname, uint8_t depth) {
             }
 
             if (id == 0) {
-                if (open_dir(newPath, depth + 1)) exit(errno);
+                if (recursive_change_mod_inner(newPath, depth + 1)) exit(errno);
                 exit(0);
             }
         } else {
@@ -74,4 +83,8 @@ int open_dir(const char* pathname, uint8_t depth) {
     // printf("LEAVING %s----------\n", pathname);
 
     return 0;
+}
+
+int recursive_change_mod(const char* pathname) {
+    return recursive_change_mod_inner(pathname, 0);
 }
