@@ -1,4 +1,12 @@
 {
     "editor.tabSize": 4,
-    "C_Cpp.clang_format_fallbackStyle": "{ BasedOnStyle: Google, IndentWidth: 4, TabWidth: 4, ColumnLimit: 0}"
+    "C_Cpp.clang_format_fallbackStyle": "{ BasedOnStyle: Google, IndentWidth: 4, TabWidth: 4, ColumnLimit: 0}",
+    "files.associations": {
+        "args_parser.h": "c",
+        "stdbool.h": "c",
+        "stat.h": "c",
+        "fcntl.h": "c",
+        "string.h": "c",
+        "stdlib.h": "c"
+    }
 }
