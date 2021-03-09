@@ -11,4 +11,4 @@ typedef struct cmd_args {
     // Add modes and paths maybe
 } cmd_args_t;
 
-int parse_args(cmd_args_t *args, int argc, char *argv[], char *envp[]);
+int parse_args(cmd_args_t* args, int argc, char* argv[], char* envp[]);
