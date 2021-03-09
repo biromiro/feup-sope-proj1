@@ -22,6 +22,9 @@
 
 #define USAGE "USAGE: xmod [-vcR] MODE/OCTAL file/dir"
 
+/**
+ * Structure containing the information about the various command options
+ */
 typedef struct cmd_options {
     bool verbose;
     bool verbose_on_modify;
@@ -56,6 +59,9 @@ typedef struct {
     perm_changes_t permission_types;
 } perm_operation_t;
 
+/**
+ * Struct containing all the information about the command arguments
+ */
 typedef struct cmd_args {
     cmd_options_t options;
     perm_operation_t mode;
