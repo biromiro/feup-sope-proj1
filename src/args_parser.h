@@ -8,6 +8,9 @@
 #include <stdlib.h>
 #include <string.h>
 #include <sys/stat.h>
+#include <unistd.h>
+
+#include "error/exit_codes.h"
 
 #define ERROR_FLAG -1
 #define READ_VAL 4
@@ -17,10 +20,13 @@
 #define VALID_USER(user) (user == 'u' || user == 'g' || user == 'o' || user == 'a')
 #define VALID_PERM(perm) (perm == '=' || perm == '+' || perm == '-')
 
+#define USAGE "USAGE: xmod [-vcR] MODE/OCTAL file/dir"
+
 typedef struct cmd_args {
     bool verbose;
-    bool verbose_on_modidy;
+    bool verbose_on_modify;
     bool recursive;
+    mode_t mode;
     // Add modes and paths maybe
 } cmd_args_t;
 
