@@ -1,6 +1,6 @@
-#include <stdint.h>
-
 #include "args_parser.h"
+#include "dirs.h"
+#include "file_status.h"
 
 int main(int argc, char *argv[], char *envp[]) {
     cmd_args_t args;
@@ -16,5 +16,8 @@ int main(int argc, char *argv[], char *envp[]) {
         printf("- %s\n", argv[i]);
     }
 
+    // struct stat status;
+    // get_status(argv[1], &status);
+    // if (is_dir(&status)) recursive_change_mod(argv[1]);
     return 0;
 }
