@@ -22,13 +22,14 @@
 
 #define USAGE "USAGE: xmod [-vcR] MODE/OCTAL file/dir"
 
-typedef struct cmd_args {
+/**
+ * Structure containing the information about the various command options
+ */
+typedef struct cmd_options {
     bool verbose;
     bool verbose_on_modify;
     bool recursive;
-    mode_t mode;
-    // Add modes and paths maybe
-} cmd_args_t;
+} cmd_options_t;
 
 /**
  * Enumerates the different changes to a user's type 
@@ -45,7 +46,7 @@ typedef struct {
     perm_change_type type_u;
     perm_change_type type_g;
     perm_change_type type_o;
-} perm_changes;
+} perm_changes_t;
 
 /**
  * Defines a permission operation.
@@ -55,8 +56,18 @@ typedef struct {
  */
 typedef struct {
     mode_t permission_octal;
-    perm_changes permission_types;
-} perm_operation;
+    perm_changes_t permission_types;
+} perm_operation_t;
+
+/**
+ * Struct containing all the information about the command arguments
+ */
+typedef struct cmd_args {
+    cmd_options_t options;
+    perm_operation_t mode;
+    size_t files_start;
+    size_t files_end;
+} cmd_args_t;
 
 /**
  * Parses the command line arguments of the command.
@@ -69,35 +80,38 @@ typedef struct {
 int parse_args(cmd_args_t *args, int argc, char *argv[], char *envp[]);
 
 /**
- * Constructor of a perm_changes object.
+ * Constructor of a perm_changes_t object.
  * 
  * @param type_u the 'user' permission change type
  * @param type_g the 'group' permission change type
  * @param type_o the 'other' permission change type
  */
-perm_changes create_perm_changes(perm_change_type type_u, perm_change_type type_g, perm_change_type type_o);
+perm_changes_t create_perm_changes_t(
+    perm_change_type type_u,
+    perm_change_type type_g,
+    perm_change_type type_o);
 
 /**
  * Parsed the xmod mode given by the command line arguments.
  * 
  * @param mode the mode to parse
  */
-int parse_mode(char *mode, perm_operation *perms);
+int parse_mode(char *mode, perm_operation_t *perms);
 
 /**
- * Parses a given mode in octal into a perm_operation object.
+ * Parses a given mode in octal into a perm_operation_t object.
  * 
  * @param mode the mode to parse
  * @param type the permission change types for the users
  */
-int parse_octal_mode(char *mode, perm_changes type, perm_operation *perms);
+int parse_octal_mode(char *mode, perm_changes_t type, perm_operation_t *perms);
 
 /**
- * Parses a given mode given in text mode into a perm_operation object.
+ * Parses a given mode given in text mode into a perm_operation_t object.
  * 
  * @param mode the mode to parse
  */
-int parse_text_mode(char *mode, perm_operation *perms);
+int parse_text_mode(char *mode, perm_operation_t *perms);
 
 /**
  * Reads a defined user permission change and returns its value.
