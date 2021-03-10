@@ -10,3 +10,5 @@
  *occured
  **/
 int open_log(int* file_descriptor);
+
+int write_log(int file_descriptor, const char * format, ...);

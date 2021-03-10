@@ -28,5 +28,7 @@ int main(int argc, char* argv[], char* envp[]) {
             return err;
     }
 
+    if(logging) write_log(fd, "%d; %d; %s\n", fd, logging, "this is a test");
+
     return 0;
 }
