@@ -2,7 +2,6 @@
 #define LOGGER_H_
 
 #include <stdbool.h>
-#include <time.h>
 
 #define LOG_ENV_VAR "LOG_FILENAME"
 
@@ -33,7 +32,7 @@ int open_log();
  * @brief Writes into the log using a
  *format and variable arguments.
  *
- * @param format string format same as printf.
+ * @param[in] format string format same as printf.
  * @param[in] ... Arguments for format specification.
  *
  * @return an error value.
@@ -41,10 +40,10 @@ int open_log();
 int write_log_format(const char* format, ...);
 
 /**
- * @brief Writes into the log with file descriptor file_descriptor.
+ * @brief Writes into the log with the predefined format.
  *
- * @param event string format same as printf.
- * @param[in] ... Arguments for format specification.
+ * @param event event enum specifying the event being logged.
+ * @param[in] info string containing information about the event.
  *
  * @return an error value.
  **/

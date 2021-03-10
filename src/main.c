@@ -1,11 +1,8 @@
 #include "../include/logger.h"
 #include "args_parser.h"
 #include "error/exit_codes.h"
-
-#include <fcntl.h>
 #include <stdint.h>
 #include <stdio.h>
-#include <unistd.h>
 
 int main(int argc, char* argv[], char* envp[]) {
     // cmd_args_t args;
