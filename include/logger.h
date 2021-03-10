@@ -1,9 +1,12 @@
+#ifndef LOGGER_H_
+#define LOGGER_H_
+
 #include <stdbool.h>
 #include <time.h>
 
 #define LOG_ENV_VAR "LOG_FILENAME"
 
-enum Event {PROC_CREAT=0, PROC_EXIT, SIGNAL_RECV, SIGNAL_SENT, FILE_MODF};
+enum Event { PROC_CREAT = 0, PROC_EXIT, SIGNAL_RECV, SIGNAL_SENT, FILE_MODF };
 
 /**
  * @brief Initializes the log_info struct.
@@ -53,3 +56,5 @@ int write_log(enum Event event, const char* info);
  * @return an error value.
  **/
 int close_log();
+
+#endif  // LOGGER_H_

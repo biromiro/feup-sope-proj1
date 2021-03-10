@@ -1,9 +1,11 @@
+#include "../include/logger.h"
 #include "args_parser.h"
 #include "error/exit_codes.h"
-#include "logger.h"
+
 #include <fcntl.h>
 #include <stdint.h>
 #include <stdio.h>
+#include <unistd.h>
 
 int main(int argc, char* argv[], char* envp[]) {
     // cmd_args_t args;
@@ -30,6 +32,10 @@ int main(int argc, char* argv[], char* envp[]) {
 
     write_log_format("%s\n", "this is a test");
     write_log(PROC_CREAT, "this is a dummy event.");
+    for (int i = 0; i < INT32_MAX; i++) {
+    }
+    write_log(PROC_CREAT, "this is a dummy event.");
+    write_log(PROC_EXIT, "this is a dummy event.");
 
     if (close_log()) {
         return errno;
