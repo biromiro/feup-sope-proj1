@@ -8,15 +8,34 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+#include <unistd.h>
 
-int write_log(int file_descriptor, const char * format, ...) {
+int write_log_format(int file_descriptor, const char* format, ...) {
     va_list valist;
 
     va_start(valist, format);
 
-    vdprintf(file_descriptor, format, valist);
+    int err = vdprintf(file_descriptor, format, valist);
 
     va_end(valist);
+
+    if (err < 0) {
+        perror("log print");
+        return errno;
+    }
+
+    return 0;
+}
+
+int write_log(int file_descriptor, time_t instant, int pid,
+              const char* action_event, const char* info) {
+    int err = dprintf(file_descriptor, "%ld ; %d ; %s ; %s\n", instant, pid,
+                      action_event, info);
+
+    if (err < 0) {
+        perror("log print");
+        return errno;
+    }
 
     return 0;
 }
@@ -28,6 +47,16 @@ int open_log(int* file_descriptor) {
     if ((*file_descriptor = creat(path_name, S_IRWXU | S_IRWXG | S_IRWXO)) ==
         -1) {
         perror("open/create log");
+        return errno;
+    }
+
+    return 0;
+}
+
+int close_log(int file_descriptor) {
+    int err = close(file_descriptor);
+    if (err) {
+        perror("closing log");
         return errno;
     }
 

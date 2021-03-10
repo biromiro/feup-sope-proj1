@@ -28,7 +28,13 @@ int main(int argc, char* argv[], char* envp[]) {
             return err;
     }
 
-    if(logging) write_log(fd, "%d; %d; %s\n", fd, logging, "this is a test");
+    if (logging) {
+        write_log_format(fd, "%d; %d; %s\n", fd, logging, "this is a test");
+
+        if (close_log(fd)) {
+            return errno;
+        }
+    }
 
     return 0;
 }
