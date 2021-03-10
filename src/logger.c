@@ -9,6 +9,8 @@
 #include <time.h>
 #include <unistd.h>
 
+#define LOG_ENV_VAR "LOG_FILENAME"
+
 typedef struct log_info {
     clock_t begin;
     bool logging;

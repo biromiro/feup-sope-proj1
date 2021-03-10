@@ -3,8 +3,6 @@
 
 #include <stdbool.h>
 
-#define LOG_ENV_VAR "LOG_FILENAME"
-
 enum Event { PROC_CREAT = 0, PROC_EXIT, SIGNAL_RECV, SIGNAL_SENT, FILE_MODF };
 
 /**
