@@ -8,14 +8,25 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+#include <time.h>
 #include <unistd.h>
 
-int write_log_format(int file_descriptor, const char* format, ...) {
+static log_info_t log_info;
+
+void init_log_info() {
+    log_info.begin = clock();
+    log_info.file_descriptor = 0;
+    log_info.logging = false;
+}
+
+bool is_logging() { return log_info.logging; }
+
+int write_log_format(const char* format, ...) {
     va_list valist;
 
     va_start(valist, format);
 
-    int err = vdprintf(file_descriptor, format, valist);
+    int err = vdprintf(log_info.file_descriptor, format, valist);
 
     va_end(valist);
 
@@ -27,10 +38,9 @@ int write_log_format(int file_descriptor, const char* format, ...) {
     return 0;
 }
 
-int write_log(int file_descriptor, time_t instant, int pid,
-              const char* action_event, const char* info) {
-    int err = dprintf(file_descriptor, "%ld ; %d ; %s ; %s\n", instant, pid,
-                      action_event, info);
+int write_log(int pid, const char* action_event, const char* info) {
+    int err = dprintf(log_info.file_descriptor, "%ld ; %d ; %s ; %s\n", clock(),
+                      pid, action_event, info);
 
     if (err < 0) {
         perror("log print");
@@ -40,25 +50,27 @@ int write_log(int file_descriptor, time_t instant, int pid,
     return 0;
 }
 
-int open_log(int* file_descriptor) {
+int open_log() {
     const char* path_name = getenv(LOG_ENV_VAR);
     if (!path_name || strlen(path_name) == 0) return NO_FILE_GIVEN;
 
-    if ((*file_descriptor = creat(path_name, S_IRWXU | S_IRWXG | S_IRWXO)) ==
-        -1) {
+    if ((log_info.file_descriptor =
+             creat(path_name, S_IRWXU | S_IRWXG | S_IRWXO)) == -1) {
         perror("open/create log");
         return errno;
     }
 
+    log_info.logging = true;
     return 0;
 }
 
-int close_log(int file_descriptor) {
-    int err = close(file_descriptor);
+int close_log() {
+    int err = close(log_info.file_descriptor);
     if (err) {
         perror("closing log");
         return errno;
     }
 
+    log_info.logging = false;
     return 0;
 }

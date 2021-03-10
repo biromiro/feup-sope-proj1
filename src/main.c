@@ -10,13 +10,13 @@ int main(int argc, char* argv[], char* envp[]) {
     // parse_args(&args, argc, argv, envp);
     // printf("Args obtained:\nR - %d\nv  - %d\nc  - %d\n", args.recursive,
     //        args.verbose, args.verbose_on_modify);
-    int fd, err;
-    bool logging = false;
+    init_log_info();
 
-    err = open_log(&fd);
+    int err;
+
+    err = open_log();
     switch (err) {
         case 0:
-            logging = true;
             printf("i am logging\n");
 
             break;
@@ -28,10 +28,11 @@ int main(int argc, char* argv[], char* envp[]) {
             return err;
     }
 
-    if (logging) {
-        write_log_format(fd, "%d; %d; %s\n", fd, logging, "this is a test");
+    if (is_logging()) {
+        write_log_format("%s\n", "this is a test");
+        write_log(1, "EVT", "this is a dummy event.");
 
-        if (close_log(fd)) {
+        if (close_log()) {
             return errno;
         }
     }
