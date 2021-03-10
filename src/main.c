@@ -27,8 +27,15 @@ int main(int argc, char* argv[], char* envp[]) {
             return err;
     }
 
+    printf("is logging? %d\n", is_logging());
+
     write_log_format("%s\n", "this is a test");
     write_log(PROC_CREAT, "this is a dummy event.");
+    write_log(PROC_CREAT, "this is a dummy event.");
+
+    write_log(PROC_CREAT, "this is a dummy event.");
+    write_log(PROC_CREAT, "this is a dummy event.");
+
     for (int i = 0; i < INT32_MAX; i++) {
     }
     write_log(PROC_CREAT, "this is a dummy event.");

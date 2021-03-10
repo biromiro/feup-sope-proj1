@@ -14,10 +14,11 @@
 typedef struct log_info {
     clock_t begin;
     bool logging;
+    bool init;
     int file_descriptor;
 } log_info_t;
 
-static log_info_t log_info;
+static log_info_t log_info = {0};
 
 static const char* const event_to_string[] = {
     "PROC_CREAT", "PROC_EXIT", "SIGNAL_RECV", "SIGNAL_SENT", "FILE_MODF"};
@@ -26,6 +27,7 @@ void init_log_info() {
     log_info.begin = clock();
     log_info.file_descriptor = 0;
     log_info.logging = false;
+    log_info.init = true;
 }
 
 bool is_logging() { return log_info.logging; }
@@ -67,6 +69,8 @@ int write_log(enum Event event, const char* info) {
 }
 
 int open_log() {
+    if (!log_info.init) return NO_FILE_GIVEN;
+
     const char* path_name = getenv(LOG_ENV_VAR);
     if (!path_name || strlen(path_name) == 0) return NO_FILE_GIVEN;
 
