@@ -1,12 +1,9 @@
 #include <stdbool.h>
 #include <time.h>
+
 #define LOG_ENV_VAR "LOG_FILENAME"
 
-typedef struct log_info {
-    clock_t begin;
-    bool logging;
-    int file_descriptor;
-} log_info_t;
+enum Event {PROC_CREAT=0, PROC_EXIT, SIGNAL_RECV, SIGNAL_SENT, FILE_MODF};
 
 /**
  * @brief Initializes the log_info struct.
@@ -30,7 +27,7 @@ bool is_logging();
 int open_log();
 
 /**
- * @brief Writes into the log with file descriptor file_descriptor using a
+ * @brief Writes into the log using a
  *format and variable arguments.
  *
  * @param format string format same as printf.
@@ -43,12 +40,12 @@ int write_log_format(const char* format, ...);
 /**
  * @brief Writes into the log with file descriptor file_descriptor.
  *
- * @param format string format same as printf.
+ * @param event string format same as printf.
  * @param[in] ... Arguments for format specification.
  *
  * @return an error value.
  **/
-int write_log(int pid, const char* action_event, const char* info);
+int write_log(enum Event event, const char* info);
 
 /**
  * @brief Closes the log with file descriptor file_descriptor.

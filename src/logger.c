@@ -11,7 +11,16 @@
 #include <time.h>
 #include <unistd.h>
 
+typedef struct log_info {
+    clock_t begin;
+    bool logging;
+    int file_descriptor;
+} log_info_t;
+
 static log_info_t log_info;
+
+static const char* const event_to_string[] = {
+    "PROC_CREAT", "PROC_EXIT", "SIGNAL_RECV", "SIGNAL_SENT", "FILE_MODF"};
 
 void init_log_info() {
     log_info.begin = clock();
@@ -22,6 +31,8 @@ void init_log_info() {
 bool is_logging() { return log_info.logging; }
 
 int write_log_format(const char* format, ...) {
+    if (!log_info.logging) return 0;
+
     va_list valist;
 
     va_start(valist, format);
@@ -38,9 +49,14 @@ int write_log_format(const char* format, ...) {
     return 0;
 }
 
-int write_log(int pid, const char* action_event, const char* info) {
-    int err = dprintf(log_info.file_descriptor, "%ld ; %d ; %s ; %s\n", clock(),
-                      pid, action_event, info);
+int write_log(enum Event event, const char* info) {
+    if (!log_info.logging) return 0;
+
+    int pid = getpid();
+    int instant = clock() - log_info.begin;
+
+    int err = dprintf(log_info.file_descriptor, "%d ; %d ; %s ; %s\n", instant,
+                      pid, event_to_string[event], info);
 
     if (err < 0) {
         perror("log print");
@@ -65,6 +81,8 @@ int open_log() {
 }
 
 int close_log() {
+    if (!log_info.logging) return 0;
+
     int err = close(log_info.file_descriptor);
     if (err) {
         perror("closing log");

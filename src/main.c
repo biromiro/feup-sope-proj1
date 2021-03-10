@@ -21,20 +21,18 @@ int main(int argc, char* argv[], char* envp[]) {
 
             break;
         case NO_FILE_GIVEN:
-            printf("no logging file give, logging disabled\n");
+            printf("no logging file given, logging disabled\n");
 
             break;
         default:
             return err;
     }
 
-    if (is_logging()) {
-        write_log_format("%s\n", "this is a test");
-        write_log(1, "EVT", "this is a dummy event.");
+    write_log_format("%s\n", "this is a test");
+    write_log(PROC_CREAT, "this is a dummy event.");
 
-        if (close_log()) {
-            return errno;
-        }
+    if (close_log()) {
+        return errno;
     }
 
     return 0;
