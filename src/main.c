@@ -9,9 +9,7 @@
 #include "../include/file_status.h"
 #include "../include/logger.h"
 
-void cleanup(void) {
-    close_log();
-}
+void cleanup(void) { close_log(); }
 
 int main(int argc, char* argv[], char* envp[]) {
     // cmd_args_t args;
@@ -19,7 +17,7 @@ int main(int argc, char* argv[], char* envp[]) {
     // printf("Args obtained:\nR - %d\nv  - %d\nc  - %d\n", args.recursive,
     //        args.verbose, args.verbose_on_modify);
     init_log_info();
-    atexit (cleanup);
+    atexit(cleanup);
 
     int err;
 
