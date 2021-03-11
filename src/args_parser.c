@@ -121,7 +121,16 @@ perm_change_type parse_perm_change_type(char del) {
 int parse_mode(char* mode, perm_operation_t* perm) {
     int res;
     char* param = malloc(strlen(mode) + 1);
-    snprintf(param, strlen(mode) + 1, "%s", mode);
+
+    if (param == NULL) {
+        perror("alloc param memory");
+        return errno;
+    }
+
+    if (snprintf(param, strlen(mode) + 1, "%s", mode) < 0) {
+        perror("cpy error");
+        return errno;
+    }
     if (!isdigit(param[0])) {
         res = parse_text_mode(param, perm);
     } else {
@@ -208,7 +217,7 @@ char get_sum_perms(char* perms) {
     int sum = 0;
 
     char used[4] = "";
-    char* cur = used, *const end = used + sizeof(used);
+    char *cur = used, *const end = used + sizeof(used);
 
     for (int i = 0; i < strlen(perms); ++i) {
         switch (perms[i]) {
