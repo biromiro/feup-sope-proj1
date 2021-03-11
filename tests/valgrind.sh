@@ -1,6 +1,6 @@
 if [ $(pwd | grep "test") ]
 then
-    echo "Run from main folder using: ./test/valgrind.sh"
+    echo "Run from main folder using: ./tests/valgrind.sh"
     exit 1
 fi
 
@@ -21,81 +21,111 @@ echo "Testing file 10" >> test_files/folder2/f10
 echo "Testing file 11" >> test_files/folder2/f11
 
 
-echo > test/valgrind.log
+echo > tests/valgrind.log
 
-echo "TEST: valgrind -q --gen-suppressions=yes ./xmod -R 0123 test_files" >> test/valgrind.log
-valgrind -q --gen-suppressions=yes ./xmod -R 0123 test_files  >> test/valgrind.log
+echo "TEST: valgrind -q --gen-suppressions=yes ./xmod -R 0888 test_files" >> tests/valgrind.log
+valgrind -q --gen-suppressions=yes ./xmod -R 0888 test_files  >> tests/valgrind.log
 
-echo "========================================"  >> test/valgrind.log
-echo "========================================"  >> test/valgrind.log
+echo "========================================"  >> tests/valgrind.log
+echo "========================================"  >> tests/valgrind.log
 
-echo "TEST: valgrind -q --gen-suppressions=yes ./xmod -R 0456 test_files" >> test/valgrind.log
-valgrind -q --gen-suppressions=yes ./xmod -R 0456 test_files  >> test/valgrind.log
+echo "TEST: valgrind -q --gen-suppressions=yes ./xmod -R 8888 test_files" >> tests/valgrind.log
+valgrind -q --gen-suppressions=yes ./xmod -R 8888 test_files  >> tests/valgrind.log
 
-echo "========================================"  >> test/valgrind.log
-echo "========================================"  >> test/valgrind.log
+echo "========================================"  >> tests/valgrind.log
+echo "========================================"  >> tests/valgrind.log
 
-echo "TEST: valgrind -q --gen-suppressions=yes ./xmod -R 0666 test_files" >> test/valgrind.log
-valgrind -q --gen-suppressions=yes ./xmod -R 0666 test_files  >> test/valgrind.log
+echo "TEST: valgrind -q --gen-suppressions=yes ./xmod -R 0123 test_files" >> tests/valgrind.log
+valgrind -q --gen-suppressions=yes ./xmod -R 0888 test_files  >> tests/valgrind.log
 
-echo "========================================"  >> test/valgrind.log
-echo "========================================"  >> test/valgrind.log
+echo "========================================"  >> tests/valgrind.log
+echo "========================================"  >> tests/valgrind.log
 
-echo "TEST: valgrind -q --gen-suppressions=yes ./xmod -cR 0123 test_files" >> test/valgrind.log
-valgrind -q --gen-suppressions=yes ./xmod -cR 0123 test_files  >> test/valgrind.log
+echo "TEST: valgrind -q --gen-suppressions=yes ./xmod -R z=x test_files" >> tests/valgrind.log
+valgrind -q --gen-suppressions=yes ./xmod -R z=x test_files  >> tests/valgrind.log
 
-echo "========================================"  >> test/valgrind.log
-echo "========================================"  >> test/valgrind.log
+echo "========================================"  >> tests/valgrind.log
+echo "========================================"  >> tests/valgrind.log
 
-echo "TEST: valgrind -q --gen-suppressions=yes ./xmod -cR 0456 test_files" >> test/valgrind.log
-valgrind -q --gen-suppressions=yes ./xmod -cR 0456 test_files  >> test/valgrind.log
+echo "TEST: valgrind -q --gen-suppressions=yes ./xmod -R z=x test_files" >> tests/valgrind.log
+valgrind -q --gen-suppressions=yes ./xmod -p g=x test_files  >> tests/valgrind.log
 
-echo "========================================"  >> test/valgrind.log
-echo "========================================"  >> test/valgrind.log
+echo "========================================"  >> tests/valgrind.log
+echo "========================================"  >> tests/valgrind.log
 
-echo "TEST: valgrind -q --gen-suppressions=yes ./xmod -cR 0666 test_files" >> test/valgrind.log
-valgrind -q --gen-suppressions=yes ./xmod -cR 0666 test_files  >> test/valgrind.log
+echo "TEST: valgrind -q --gen-suppressions=yes ./xmod -R 0123 test_files" >> tests/valgrind.log
+valgrind -q --gen-suppressions=yes ./xmod -R 0123 test_files  >> tests/valgrind.log
 
-echo "========================================"  >> test/valgrind.log
-echo "========================================"  >> test/valgrind.log
+echo "========================================"  >> tests/valgrind.log
+echo "========================================"  >> tests/valgrind.log
 
-echo "TEST: valgrind -q --gen-suppressions=yes ./xmod -cvR 0123 test_files" >> test/valgrind.log
-valgrind -q --gen-suppressions=yes ./xmod -cvR 0123 test_files  >> test/valgrind.log
+echo "TEST: valgrind -q --gen-suppressions=yes ./xmod -R 0456 test_files" >> tests/valgrind.log
+valgrind -q --gen-suppressions=yes ./xmod -R 0456 test_files  >> tests/valgrind.log
 
-echo "========================================"  >> test/valgrind.log
-echo "========================================"  >> test/valgrind.log
+echo "========================================"  >> tests/valgrind.log
+echo "========================================"  >> tests/valgrind.log
 
-echo "TEST: valgrind -q --gen-suppressions=yes ./xmod -cvR 0456 test_files" >> test/valgrind.log
-valgrind -q --gen-suppressions=yes ./xmod -cvR 0456 test_files  >> test/valgrind.log
+echo "TEST: valgrind -q --gen-suppressions=yes ./xmod -R 0666 test_files" >> tests/valgrind.log
+valgrind -q --gen-suppressions=yes ./xmod -R 0666 test_files  >> tests/valgrind.log
 
-echo "========================================"  >> test/valgrind.log
-echo "========================================"  >> test/valgrind.log
+echo "========================================"  >> tests/valgrind.log
+echo "========================================"  >> tests/valgrind.log
 
-echo "TEST: valgrind -q --gen-suppressions=yes ./xmod -cvR 0666 test_files" >> test/valgrind.log
-valgrind -q --gen-suppressions=yes ./xmod -cvR 0666 test_files  >> test/valgrind.log
+echo "TEST: valgrind -q --gen-suppressions=yes ./xmod -cR 0123 test_files" >> tests/valgrind.log
+valgrind -q --gen-suppressions=yes ./xmod -cR 0123 test_files  >> tests/valgrind.log
 
-echo "========================================"  >> test/valgrind.log
-echo "========================================"  >> test/valgrind.log
+echo "========================================"  >> tests/valgrind.log
+echo "========================================"  >> tests/valgrind.log
 
-echo "TEST: valgrind -q --gen-suppressions=yes ./xmod -cvR a=xwr test_files" >> test/valgrind.log
-valgrind -q --gen-suppressions=yes ./xmod -cvR a=xwr test_files  >> test/valgrind.log
+echo "TEST: valgrind -q --gen-suppressions=yes ./xmod -cR 0456 test_files" >> tests/valgrind.log
+valgrind -q --gen-suppressions=yes ./xmod -cR 0456 test_files  >> tests/valgrind.log
 
-echo "========================================"  >> test/valgrind.log
-echo "========================================"  >> test/valgrind.log
+echo "========================================"  >> tests/valgrind.log
+echo "========================================"  >> tests/valgrind.log
 
-echo "TEST: valgrind -q --gen-suppressions=yes ./xmod -cvR g=xw test_files" >> test/valgrind.log
-valgrind -q --gen-suppressions=yes ./xmod -cvR g=xw test_files  >> test/valgrind.log
+echo "TEST: valgrind -q --gen-suppressions=yes ./xmod -cR 0666 test_files" >> tests/valgrind.log
+valgrind -q --gen-suppressions=yes ./xmod -cR 0666 test_files  >> tests/valgrind.log
 
-echo "========================================"  >> test/valgrind.log
-echo "========================================"  >> test/valgrind.log
+echo "========================================"  >> tests/valgrind.log
+echo "========================================"  >> tests/valgrind.log
 
-echo "TEST: valgrind -q --gen-suppressions=yes ./xmod -cvR u=rw test_files" >> test/valgrind.log
-valgrind -q --gen-suppressions=yes ./xmod -cvR u=rw test_files  >> test/valgrind.log
+echo "TEST: valgrind -q --gen-suppressions=yes ./xmod -cvR 0123 test_files" >> tests/valgrind.log
+valgrind -q --gen-suppressions=yes ./xmod -cvR 0123 test_files  >> tests/valgrind.log
 
-echo "========================================"  >> test/valgrind.log
-echo "========================================"  >> test/valgrind.log
+echo "========================================"  >> tests/valgrind.log
+echo "========================================"  >> tests/valgrind.log
 
-echo "TEST: valgrind -q --gen-suppressions=yes ./xmod -cvR o=x test_files" >> test/valgrind.log
-valgrind -q --gen-suppressions=yes ./xmod -cvR o=x test_files  >> test/valgrind.log
+echo "TEST: valgrind -q --gen-suppressions=yes ./xmod -cvR 0456 test_files" >> tests/valgrind.log
+valgrind -q --gen-suppressions=yes ./xmod -cvR 0456 test_files  >> tests/valgrind.log
+
+echo "========================================"  >> tests/valgrind.log
+echo "========================================"  >> tests/valgrind.log
+
+echo "TEST: valgrind -q --gen-suppressions=yes ./xmod -cvR 0666 test_files" >> tests/valgrind.log
+valgrind -q --gen-suppressions=yes ./xmod -cvR 0666 test_files  >> tests/valgrind.log
+
+echo "========================================"  >> tests/valgrind.log
+echo "========================================"  >> tests/valgrind.log
+
+echo "TEST: valgrind -q --gen-suppressions=yes ./xmod -cvR a=xwr test_files" >> tests/valgrind.log
+valgrind -q --gen-suppressions=yes ./xmod -cvR a=xwr test_files  >> tests/valgrind.log
+
+echo "========================================"  >> tests/valgrind.log
+echo "========================================"  >> tests/valgrind.log
+
+echo "TEST: valgrind -q --gen-suppressions=yes ./xmod -cvR g=xw test_files" >> tests/valgrind.log
+valgrind -q --gen-suppressions=yes ./xmod -cvR g=xw test_files  >> tests/valgrind.log
+
+echo "========================================"  >> tests/valgrind.log
+echo "========================================"  >> tests/valgrind.log
+
+echo "TEST: valgrind -q --gen-suppressions=yes ./xmod -cvR u=rw test_files" >> tests/valgrind.log
+valgrind -q --gen-suppressions=yes ./xmod -cvR u=rw test_files  >> tests/valgrind.log
+
+echo "========================================"  >> tests/valgrind.log
+echo "========================================"  >> tests/valgrind.log
+
+echo "TEST: valgrind -q --gen-suppressions=yes ./xmod -cvR o=x test_files" >> tests/valgrind.log
+valgrind -q --gen-suppressions=yes ./xmod -cvR o=x test_files  >> tests/valgrind.log
 
 rm -rf test_files
