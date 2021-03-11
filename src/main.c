@@ -1,8 +1,38 @@
+#include "../include/logger.h"
 #include "args_parser.h"
+#include "error/exit_codes.h"
 #include "dirs.h"
 #include "file_status.h"
+#include <stdint.h>
+#include <stdio.h>
 
-int main(int argc, char *argv[], char *envp[]) {
+int main(int argc, char* argv[], char* envp[]) {
+    // cmd_args_t args;
+    // parse_args(&args, argc, argv, envp);
+    // printf("Args obtained:\nR - %d\nv  - %d\nc  - %d\n", args.recursive,
+    //        args.verbose, args.verbose_on_modify);
+    init_log_info();
+
+    int err;
+
+    err = open_log();
+    switch (err) {
+        case 0:
+            printf("i am logging\n");
+
+            break;
+        case NO_FILE_GIVEN:
+            printf("no logging file given, logging disabled\n");
+
+            break;
+        default:
+            return err;
+    }
+    
+    // struct stat status;
+    // get_status(argv[1], &status);
+    // if (is_dir(&status)) recursive_change_mod(argv[1]);
+    
     cmd_args_t args;
     parse_args(&args, argc, argv, envp);
     printf("Args obtained:\nR - %d\nv  - %d\nc  - %d\n", args.options.recursive, args.options.verbose, args.options.verbose_on_modify);
@@ -16,8 +46,9 @@ int main(int argc, char *argv[], char *envp[]) {
         printf("- %s\n", argv[i]);
     }
 
-    // struct stat status;
-    // get_status(argv[1], &status);
-    // if (is_dir(&status)) recursive_change_mod(argv[1]);
+    if (close_log()) {
+        return errno;
+    }
+    
     return 0;
 }
