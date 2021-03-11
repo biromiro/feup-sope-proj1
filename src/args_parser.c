@@ -6,12 +6,12 @@
  * In case of success returns 0 and if an option is not valid, returns the invalida character used.
  * It also returns the index for the next parser to evaluate
  * 
- * @param [out] args struct to return information about the options
+ * @param [out] args struct to fill information about the options
  * @param [out] last_arg index of the the argument for the next parser to evaluate
  * @param argc
  * @param argv   
  */
-int parse_options(cmd_args_t *args, int *last_arg, int argc, char *argv[]) {
+int parse_options(cmd_options_t *args, int *last_arg, int argc, char *argv[]) {
     const char *valid_args = "vcR";
     *last_arg = 1;
     for (size_t i = 1; i < argc; i++) {
@@ -63,7 +63,7 @@ int parse_args(cmd_args_t *args, int argc, char *argv[], char *envp[]) {
     memset(args, 0, sizeof(cmd_args_t));
 
     int opt, next_op_idx;
-    if ((opt = parse_options(args, &next_op_idx, argc, argv)) != 0) {
+    if ((opt = parse_options(&args->options, &next_op_idx, argc, argv)) != 0) {
         fprintf(stderr,
                 "xmod: invalid option: '-%c'\n%s\n", opt, USAGE);
         exit(BAD_OPTION);
@@ -75,22 +75,21 @@ int parse_args(cmd_args_t *args, int argc, char *argv[], char *envp[]) {
         exit(BAD_ARGS);
     }
 
-    perm_operation val;
-    if (parse_mode(argv[next_op_idx], &val) != 0) {
+    if (parse_mode(argv[next_op_idx], &args->mode) != 0) {
         fprintf(stderr,
                 "xmod: invalid mode: '%s'\n%s\n", argv[next_op_idx], USAGE);
         exit(BAD_MODE);
     }
 
-    printf("%o, %d, %d, %d\n", val.permission_octal, val.permission_types.type_u, val.permission_types.type_g, val.permission_types.type_o);
-
+    args->files_start = next_op_idx + 1;
+    args->files_end = argc;
     return 0;
 }
 
-perm_changes create_perm_changes(perm_change_type type_u,
-                                 perm_change_type type_g,
-                                 perm_change_type type_o) {
-    perm_changes permissions;
+perm_changes_t create_perm_changes(perm_change_type type_u,
+                                   perm_change_type type_g,
+                                   perm_change_type type_o) {
+    perm_changes_t permissions;
 
     permissions.type_u = type_u;
     permissions.type_g = type_g;
@@ -113,7 +112,7 @@ perm_change_type parse_perm_change_type(char del) {
     }
 }
 
-int parse_mode(char *mode, perm_operation *perm) {
+int parse_mode(char *mode, perm_operation_t *perm) {
     int res;
     char *param = malloc(strlen(mode));
     strcpy(param, mode);
@@ -129,7 +128,7 @@ int parse_mode(char *mode, perm_operation *perm) {
     return res;
 }
 
-int parse_octal_mode(char *mode, perm_changes types, perm_operation *perms) {
+int parse_octal_mode(char *mode, perm_changes_t types, perm_operation_t *perms) {
     char *end;
     mode_t code = strtol(mode, &end, 8);
     if (*end != '\0' || errno == EINVAL) {
@@ -141,7 +140,7 @@ int parse_octal_mode(char *mode, perm_changes types, perm_operation *perms) {
     return 0;
 }
 
-int parse_text_mode(char *mode, perm_operation *perms) {
+int parse_text_mode(char *mode, perm_operation_t *perms) {
     char octal_val[5] = "0000";
     char *begin_of_perm = strtok_r(mode, ",", &mode);
 

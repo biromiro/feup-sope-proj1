@@ -1,6 +1,8 @@
 #include "../include/logger.h"
 #include "args_parser.h"
 #include "error/exit_codes.h"
+#include "dirs.h"
+#include "file_status.h"
 #include <stdint.h>
 #include <stdio.h>
 
@@ -26,24 +28,27 @@ int main(int argc, char* argv[], char* envp[]) {
         default:
             return err;
     }
+    
+    // struct stat status;
+    // get_status(argv[1], &status);
+    // if (is_dir(&status)) recursive_change_mod(argv[1]);
+    
+    cmd_args_t args;
+    parse_args(&args, argc, argv, envp);
+    printf("Args obtained:\nR - %d\nv  - %d\nc  - %d\n", args.options.recursive, args.options.verbose, args.options.verbose_on_modify);
+    printf("%o, %d, %d, %d\n", args.mode.permission_octal, args.mode.permission_types.type_u, args.mode.permission_types.type_g, args.mode.permission_types.type_o);
 
-    printf("is logging? %d\n", is_logging());
-
-    write_log_format("%s\n", "this is a test");
-    write_log(PROC_CREAT, "this is a dummy event.");
-    write_log(PROC_CREAT, "this is a dummy event.");
-
-    write_log(PROC_CREAT, "this is a dummy event.");
-    write_log(PROC_CREAT, "this is a dummy event.");
-
-    for (int i = 0; i < INT32_MAX; i++) {
+    printf("\nFiles: %d %d %d\n",
+           (int)(args.files_end - args.files_start),
+           (int)(args.files_start),
+           (int)(args.files_end));
+    for (size_t i = args.files_start; i < args.files_end; i++) {
+        printf("- %s\n", argv[i]);
     }
-    write_log(PROC_CREAT, "this is a dummy event.");
-    write_log(PROC_EXIT, "this is a dummy event.");
 
     if (close_log()) {
         return errno;
     }
-
+    
     return 0;
 }
