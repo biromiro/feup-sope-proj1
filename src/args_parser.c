@@ -197,8 +197,8 @@ char parse_user_type_perms(char* user_perms) {
     snprintf(delimiter_string, sizeof(delimiter_string), "%c", delimiter);
 
     if (strlen(user_perms) >= 3 && VALID_PERM(delimiter) && VALID_USER(user)) {
-        char* perms = strtok_r(user_perms, delimiter_string, &user_perms);
-        perms = strtok_r(NULL, delimiter_string, &user_perms);
+        strtok_r(user_perms, delimiter_string, &user_perms);
+        char* perms = strtok_r(NULL, delimiter_string, &user_perms);
         return get_sum_perms(perms);
     }
     return ERROR_FLAG;

@@ -50,6 +50,7 @@ int recursive_change_mod_inner(const char* pathname, uint8_t depth) {
         // printf("CUR DIR: %s length %d", newPath, directory_entry->d_reclen);
 
         if (get_status(new_path, &status)) {
+            closedir(directory);
             return errno;
         }
 
@@ -61,6 +62,7 @@ int recursive_change_mod_inner(const char* pathname, uint8_t depth) {
                            // print both on parent and on child process
             int id = fork();
             if (id == -1) {
+                closedir(directory);
                 perror("fork error");
                 return errno;
             }
@@ -76,6 +78,7 @@ int recursive_change_mod_inner(const char* pathname, uint8_t depth) {
     }
 
     if (errno != 0) {
+        closedir(directory);
         perror("ERROR GETTING NEXT DIR");
         return errno;
     }

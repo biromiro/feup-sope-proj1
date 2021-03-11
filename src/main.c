@@ -1,6 +1,7 @@
 #include <stdint.h>
 #include <stdio.h>
 #include <errno.h>
+#include <stdlib.h>
 
 #include "../include/args_parser.h"
 #include "../include/dirs.h"
@@ -8,12 +9,17 @@
 #include "../include/file_status.h"
 #include "../include/logger.h"
 
+void cleanup(void) {
+    close_log();
+}
+
 int main(int argc, char* argv[], char* envp[]) {
     // cmd_args_t args;
     // parse_args(&args, argc, argv, envp);
     // printf("Args obtained:\nR - %d\nv  - %d\nc  - %d\n", args.recursive,
     //        args.verbose, args.verbose_on_modify);
     init_log_info();
+    atexit (cleanup);
 
     int err;
 

@@ -128,4 +128,10 @@ echo "========================================"  >> tests/valgrind.log
 echo "TEST: valgrind -q --gen-suppressions=yes ./xmod -cvR o=x test_files" >> tests/valgrind.log
 valgrind -q --gen-suppressions=yes ./xmod -cvR o=x test_files  >> tests/valgrind.log
 
+echo "========================================"  >> tests/valgrind.log
+echo "========================================"  >> tests/valgrind.log
+
+echo "TEST: valgrind -q --gen-suppressions=yes ./xmod -cvR o=xxwwxxrrww,g-rrwwrrxxxxx,u+x test_files" >> tests/valgrind.log
+valgrind -q --gen-suppressions=yes ./xmod -cvR o=xxwwxxrrww,g-rrwwrrxxxxx,u+x test_files  >> tests/valgrind.log
+
 rm -rf test_files
