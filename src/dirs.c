@@ -35,7 +35,7 @@ int recursive_change_mod_inner(const char* pathname, uint8_t depth) {
 
     struct dirent* directory_entry;
     struct stat status;
-    const size_t kPath_size = (depth + 1) * MAXNAMLEN + 2;
+    const size_t kPath_size = (depth + 2) * MAXNAMLEN + 2;
     char new_path[kPath_size];
 
     errno = 0;
