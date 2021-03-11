@@ -1,5 +1,5 @@
 #include "../include/logger.h"
-#include "error/exit_codes.h"
+
 #include <errno.h>
 #include <fcntl.h>
 #include <stdarg.h>
@@ -8,6 +8,8 @@
 #include <string.h>
 #include <time.h>
 #include <unistd.h>
+
+#include "../include/error/exit_codes.h"
 
 #define LOG_ENV_VAR "LOG_FILENAME"
 

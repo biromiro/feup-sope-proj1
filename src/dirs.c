@@ -1,4 +1,5 @@
-#include "file_status.h"
+#include "../include/dirs.h"
+
 #include <bits/stdint-uintn.h>
 #include <sys/types.h>
 #include <dirent.h>
@@ -7,6 +8,8 @@
 #include <stdlib.h>
 #include <string.h>
 #include <unistd.h>
+
+#include "../include/file_status.h"
 
 /**
  * @brief Changes the permissions of all files inside a directory, recursively
@@ -32,7 +35,8 @@ int recursive_change_mod_inner(const char* pathname, uint8_t depth) {
 
     struct dirent* directory_entry;
     struct stat status;
-    char newPath[(depth + 1) * MAXNAMLEN + 2];
+    const size_t kPath_size = (depth + 1) * MAXNAMLEN + 2;
+    char new_path[kPath_size];
 
     errno = 0;
     while ((directory_entry = readdir(directory)) != NULL) {
@@ -40,12 +44,12 @@ int recursive_change_mod_inner(const char* pathname, uint8_t depth) {
             !strcmp(directory_entry->d_name, "."))
             continue;
 
-        snprintf(newPath, (depth + 1) * MAXNAMLEN + 2, "%s/%s", pathname,
+        snprintf(new_path, kPath_size, "%s/%s", pathname,
                  directory_entry->d_name);
-        printf("%s\n", newPath);
+        printf("%s\n", new_path);
         // printf("CUR DIR: %s length %d", newPath, directory_entry->d_reclen);
 
-        if (get_status(newPath, &status)) {
+        if (get_status(new_path, &status)) {
             return errno;
         }
 
@@ -62,7 +66,8 @@ int recursive_change_mod_inner(const char* pathname, uint8_t depth) {
             }
 
             if (id == 0) {
-                if (recursive_change_mod_inner(newPath, depth + 1)) exit(errno);
+                if (recursive_change_mod_inner(new_path, depth + 1))
+                    exit(errno);
                 exit(0);
             }
         } else {

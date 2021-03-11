@@ -4,4 +4,4 @@ then
     exit 1
 fi
 
-cpplint --filter=-whitespace,-legal/copyright,-readability/check  --recursive src > test/cpplint.log
+cpplint --filter=-whitespace,-legal/copyright,-readability/check  --recursive . > test/cpplint.log
