@@ -53,9 +53,5 @@ int main(int argc, char* argv[], char* envp[]) {
         printf("- %s\n", argv[i]);
     }
 
-    if (close_log()) {
-        return errno;
-    }
-
     return 0;
 }
