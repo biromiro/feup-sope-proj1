@@ -7,6 +7,7 @@
 * Exercise:
 * 	change this code to show that USER was changed after the exec.
 */
+#include <ctype.h>
 #include <fcntl.h>
 #include <stdbool.h>
 #include <stdio.h>
@@ -22,6 +23,12 @@ char *newenviron[] = {"USER=Linus", NULL};
 
 static bool waiting = false;
 
+void clear_buffer() {
+    char c;
+    while (((c = getchar()) != EOF) && (c != '\n'))
+        printf("CHAR: %d\n\n", c);
+}
+
 void sighandler(int signo) {
     waiting = true;
 
@@ -29,19 +36,17 @@ void sighandler(int signo) {
     if (getpid() == getpgrp()) {
         printf("Do you want to exit? (y/Y or n/N)\n");
         char c = getchar();
+        clear_buffer(stdin);
         printf("CHAR OBTAINED: %c\n", c);
-        switch (c) {
-            case 'y':
+        switch (toupper(c)) {
             case 'Y':
                 printf("SENT SIGNAL\n");
                 killpg(getpgrp(), SIGUSR1);
                 exit(1);
                 break;
-            case 'n':
             case 'N':
-                killpg(getpgrp(), SIGUSR2);
-                break;
             default:
+                killpg(getpgrp(), SIGUSR2);
                 break;
         }
     }
@@ -55,7 +60,10 @@ void confirm_kill(int signo) {
 }
 
 void dummy() {
-    waiting = false;
+    if (waiting) {
+        printf("Continue process\n");
+        waiting = false;
+    }
 }
 
 void setup_handler() {
@@ -121,7 +129,12 @@ int main(int argc, char *argv[], char *envp[]) {
 
         default: {
             int status;
-            wait(&status);
+            while (1) {
+                if (waiting)
+                    continue;
+                if (wait(&status) > 0)
+                    break;
+            }
             printf("PID: %d Status: %d\n", getpid(), WEXITSTATUS(status));
         }
     }
