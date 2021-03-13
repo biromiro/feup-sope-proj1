@@ -57,7 +57,7 @@ void sighandler(int signo) {
 
     printf("%d ; %s ; %d ; %d \n", getpid(), id > 0 ? "random_file" : "child", 5, 4);
     if (getpid() == getpgrp()) {
-        exchange_pipe(RECEIVE);
+        sleep(0.5);
         printf("Do you want to exit? (y/Y or n/N)\n");
         char c = get_clean_char();
         printf("CHAR OBTAINED: %c\n", c);
