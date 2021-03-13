@@ -75,8 +75,8 @@ int recursive_change_mod_inner(const char* pathname, uint8_t depth, perm_operati
                 exit(0);
             }
         } else {
-            if (change_perms(pathname, permissions) == 0)
-                printf("permission changed on %s\n", pathname);
+            if (change_perms(new_path, permissions) == 0)
+                printf("permission changed on %s\n", new_path);
         }
     }
 
