@@ -52,12 +52,14 @@ int main(int argc, char* argv[], char* envp[]) {
            (args.files_start), (args.files_end));
     for (size_t i = args.files_start; i < args.files_end; i++) {
         printf("- %s\n", argv[i]);
-        //if(args.options.recursive) recursive_change_mod(argv[i], &args.mode);
-        //else
-        if (change_perms(argv[i], &args.mode) == 0)
-            printf("Permissions changed");
-        else
-            printf("Permissions not changed!");
+        if (args.options.recursive)
+            recursive_change_mod(argv[i], &args.mode);
+        else {
+            if (change_perms(argv[i], &args.mode) == 0)
+                printf("Permissions changed");
+            else
+                printf("Permissions not changed!");
+        }
     }
 
     return 0;

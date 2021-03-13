@@ -21,7 +21,7 @@
  *
  * @return an error value.
  **/
-int recursive_change_mod_inner(const char* pathname, uint8_t depth) {
+int recursive_change_mod_inner(const char* pathname, uint8_t depth, perm_operation_t* permissions) {
     // used find ..  -printf '%M %p\n' | wc -l, and  ./xmod .. | wc -l, to test
     // if this func works correctly
     DIR* directory = opendir(pathname);
@@ -32,7 +32,8 @@ int recursive_change_mod_inner(const char* pathname, uint8_t depth) {
     }
 
     // printf("IN %s-------\n", pathname);
-    //change_perms(pathname, permissions);
+    if (change_perms(pathname, permissions) == 0)
+        printf("permission changed on %s\n", pathname);
 
     struct dirent* directory_entry;
     struct stat status;
@@ -69,12 +70,13 @@ int recursive_change_mod_inner(const char* pathname, uint8_t depth) {
             }
 
             if (id == 0) {
-                if (recursive_change_mod_inner(new_path, depth + 1))
+                if (recursive_change_mod_inner(new_path, depth + 1, permissions))
                     exit(errno);
                 exit(0);
             }
         } else {
-            // <<<<<<<<<<< change permission of file here
+            if (change_perms(pathname, permissions) == 0)
+                printf("permission changed on %s\n", pathname);
         }
     }
 
@@ -94,6 +96,6 @@ int recursive_change_mod_inner(const char* pathname, uint8_t depth) {
     return 0;
 }
 
-int recursive_change_mod(const char* pathname) {
-    return recursive_change_mod_inner(pathname, 0);
+int recursive_change_mod(const char* pathname, perm_operation_t* permissions) {
+    return recursive_change_mod_inner(pathname, 0, permissions);
 }

@@ -24,28 +24,18 @@ int get_new_perms(const char *pathname, perm_operation_t *permissions, mode_t *n
                                permissions->permission_types.type_g,
                                permissions->permission_types.type_u};
 
-    printf("Should be 0: %o\n", *new_perm);
-
     for (int offset = 0; offset < 3; offset++) {
         //current permissions for read, write and execute
 
         int permission_digit = (current_perms / get_octal_offset(offset)) % OCTAL_BASE;
 
-        printf("current perms = %o, permission_digit = %o\n", current_perms, permission_digit);
-
         int current_r = (permission_digit / READ_VAL) * READ_VAL, rest_r = permission_digit % READ_VAL;
         int current_w = (rest_r / WRITE_VAL) * WRITE_VAL, rest_w = rest_r % WRITE_VAL;
         int current_x = (rest_w / EXEC_VAL);
 
-        printf("current_r = %o, current_w = %o, current_x = %o\n\n", current_r, current_w, current_x);
-
         //new permissions for read, write and execute
 
-        printf("permission = %o\n", permissions->permission_octal);
-
         permission_digit = ((permissions->permission_octal) / get_octal_offset(offset)) % OCTAL_BASE;
-
-        printf("permission digit = %d\n\n", permission_digit);
 
         int new_r = (permission_digit / READ_VAL) * READ_VAL;
         rest_r = permission_digit % READ_VAL;
@@ -73,11 +63,8 @@ int get_new_perms(const char *pathname, perm_operation_t *permissions, mode_t *n
                 break;
         }
 
-        printf("permission_types[offset] = %d, new_r = %d, new_w = %d, new_x = %d\n", permission_types[offset], new_r, new_w, new_x);
-        printf("%o\n\n", (new_r + new_w + new_x) * get_octal_offset(offset));
         *new_perm += (new_r + new_w + new_x) * get_octal_offset(offset);
     }
-    printf("%o\n", *new_perm);
     return 0;
 }
 
