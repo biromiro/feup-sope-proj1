@@ -19,9 +19,9 @@ int change_perms(const char *pathname, perm_operation_t *permissions) {
     //Always verbose, needs change accounting for options
 
     if ((res = chmod(pathname, new_permission))) {
-        perror("ERROR CALLING CHMOD")
+        perror("ERROR CALLING CHMOD");
         return res;
-      }
+    }
     if (current_permission == new_permission)
         printf("mode of '%s' retained as 0%o\n", pathname, new_permission);
     else
