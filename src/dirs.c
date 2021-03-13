@@ -24,16 +24,17 @@
 int recursive_change_mod_inner(const char* pathname, uint8_t depth, perm_operation_t* permissions) {
     // used find ..  -printf '%M %p\n' | wc -l, and  ./xmod .. | wc -l, to test
     // if this func works correctly
-    DIR* directory = opendir(pathname);
-
-    if (directory == NULL) {
-        perror("ERROR WHILE OPENING DIRECTORY");
-        return errno;
-    }
 
     // printf("IN %s-------\n", pathname);
     if (change_perms(pathname, permissions) != 0) {
         perror("ERROR WHILE CHANGING PERMISSION!");
+        return errno;
+    }
+
+    DIR* directory = opendir(pathname);
+
+    if (directory == NULL) {
+        perror("ERROR WHILE OPENING DIRECTORY");
         return errno;
     }
 
