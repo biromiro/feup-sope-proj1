@@ -32,8 +32,10 @@ int recursive_change_mod_inner(const char* pathname, uint8_t depth, perm_operati
     }
 
     // printf("IN %s-------\n", pathname);
-    if (change_perms(pathname, permissions) == 0)
-        printf("permission changed on %s\n", pathname);
+    if (change_perms(pathname, permissions) != 0) {
+        perror("ERROR WHILE CHANGING PERMISSION!");
+        return errno;
+    }
 
     struct dirent* directory_entry;
     struct stat status;
@@ -48,7 +50,7 @@ int recursive_change_mod_inner(const char* pathname, uint8_t depth, perm_operati
 
         snprintf(new_path, kPath_size, "%s/%s", pathname,
                  directory_entry->d_name);
-        printf("%s\n", new_path);
+        //printf("%s\n", new_path);
         // printf("CUR DIR: %s length %d", newPath, directory_entry->d_reclen);
 
         if (get_status(new_path, &status)) {
@@ -75,8 +77,10 @@ int recursive_change_mod_inner(const char* pathname, uint8_t depth, perm_operati
                 exit(0);
             }
         } else {
-            if (change_perms(new_path, permissions) == 0)
-                printf("permission changed on %s\n", new_path);
+            if (change_perms(new_path, permissions) != 0) {
+                perror("ERROR WHILE CHANGING PERMISSION!");
+                return errno;
+            }
         }
     }
 

@@ -55,10 +55,7 @@ int main(int argc, char* argv[], char* envp[]) {
         if (args.options.recursive)
             recursive_change_mod(argv[i], &args.mode);
         else {
-            if (change_perms(argv[i], &args.mode) == 0)
-                printf("Permissions changed");
-            else
-                printf("Permissions not changed!");
+            change_perms(argv[i], &args.mode);
         }
     }
 

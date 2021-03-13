@@ -7,7 +7,7 @@
 
 int change_perms(const char *pathname, perm_operation_t *permissions);
 
-int get_new_perms(const char *pathname, perm_operation_t *permissions, mode_t *new_permission);
+int get_new_perms(const char *pathname, perm_operation_t *permissions, mode_t current_perm, mode_t *new_perm);
 
 int get_octal_offset(int offset);
 

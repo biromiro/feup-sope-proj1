@@ -8,6 +8,7 @@
  *opening directories inside it. Creates a process for each directory.
  *
  * @param[in] pathname string containing the pathname of the directory.
+ * @param permissions the struct contating the permissions to change.
  *
  * @return an error value.
  **/

@@ -7,19 +7,28 @@
 #include "../include/file_status.h"
 
 int change_perms(const char *pathname, perm_operation_t *permissions) {
-    mode_t new_permission = 0;
-    get_new_perms(pathname, permissions, &new_permission);
-    return chmod(pathname, new_permission);
-}
-
-int get_new_perms(const char *pathname, perm_operation_t *permissions, mode_t *new_perm) {
-    int err;
+    int res, err;
     struct stat status;
 
     if ((err = get_status(pathname, &status)) != 0) return err;
 
-    int current_perms = get_access_perms(&status);
+    mode_t current_permission = get_access_perms(&status), new_permission = 0;
 
+    get_new_perms(pathname, permissions, current_permission, &new_permission);
+
+    //Always verbose, needs change accounting for options
+
+    if ((res = chmod(pathname, new_permission)) == 0) {
+        if (current_permission == new_permission)
+            printf("mode of '%s' retained as 0%o\n", pathname, new_permission);
+        else
+            printf("mode of '%s' changed from 0%o to 0%o\n", pathname, current_permission, new_permission);
+    }
+
+    return res;
+}
+
+int get_new_perms(const char *pathname, perm_operation_t *permissions, mode_t current_perm, mode_t *new_perm) {
     int permission_types[3] = {permissions->permission_types.type_o,
                                permissions->permission_types.type_g,
                                permissions->permission_types.type_u};
@@ -27,7 +36,7 @@ int get_new_perms(const char *pathname, perm_operation_t *permissions, mode_t *n
     for (int offset = 0; offset < 3; offset++) {
         //current permissions for read, write and execute
 
-        int permission_digit = (current_perms / get_octal_offset(offset)) % OCTAL_BASE;
+        int permission_digit = (current_perm / get_octal_offset(offset)) % OCTAL_BASE;
 
         int current_r = (permission_digit / READ_VAL) * READ_VAL, rest_r = permission_digit % READ_VAL;
         int current_w = (rest_r / WRITE_VAL) * WRITE_VAL, rest_w = rest_r % WRITE_VAL;
