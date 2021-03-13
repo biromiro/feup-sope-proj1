@@ -8,16 +8,15 @@ static pinfo_t pinfo;
 
 void setup_pinfo() {
     pinfo.curr_file = (char*)malloc(2);
-    pinfo.curr_file = "";
+    pinfo.curr_file = NULL;
     pinfo.child_pid = -1;
     pinfo.files_found = 0;
     pinfo.files_changed = 0;
 }
 
 void update_file_pinfo(const char* path) {
-    printf("PINFO: %ld '%s'\n", (unsigned long)pinfo.curr_file, pinfo.curr_file);
-    void* ptr = realloc((void*)pinfo.curr_file, strlen(path) + 1);
-    pinfo.curr_file = (char*)ptr;
+    printf("PINFO: '%s', '%s', '%ld'\n", pinfo.curr_file, path, strlen(path) + 1);
+    pinfo.curr_file = (char*)realloc(pinfo.curr_file, strlen(path) + 1);
     snprintf(pinfo.curr_file, strlen(path) + 1, "%s", path);
 }
 
