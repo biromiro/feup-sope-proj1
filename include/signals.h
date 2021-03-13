@@ -11,6 +11,11 @@
  */
 int setup_handlers();
 
+/**
+ * @brief Locks the process while waiting for user feedback
+ */
+void lock_process();
+
 int sig_log_register(int signo);
 
 #endif  // INCLUDE_SIGS_H

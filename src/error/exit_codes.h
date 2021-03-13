@@ -2,3 +2,4 @@
 #define BAD_ARGS 6
 #define BAD_MODE 7
 #define NO_FILE_GIVEN 8
+#define ERR_SIGNAL_SETUP 9

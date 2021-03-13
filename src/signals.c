@@ -1,4 +1,4 @@
-#include "../src/signals.h"
+#include "../include/signals.h"
 
 #include <ctype.h>
 #include <signal.h>
@@ -9,6 +9,7 @@
 #include <unistd.h>
 
 #include "../include/aux.h"
+#include "../include/process.h"
 
 static bool waiting = false;
 
@@ -21,9 +22,6 @@ bool is_waiting() {
     return waiting;
 }
 
-/**
- * @brief Locks the process while waiting for user feedback
- */
 void lock_process() {
     while (waiting) {
     }
@@ -52,7 +50,9 @@ void sig_int_process() {
     }
     waiting = true;
 
-    printf("%d ; %s ; %d ; %d \n", getpid(), "random_file", 5, 4);
+    pinfo_t *info = get_pinfo();
+
+    printf("%d ; %s ; %d ; %d \n", getpid(), info->curr_file, 5, 4);
     if (getpid() == getpgrp()) {
         sleep(0.5);
         printf("Do you want to exit? (y/Y or n/N)\n");

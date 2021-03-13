@@ -1,12 +1,15 @@
-#include "file_status.h"
 #include <bits/stdint-uintn.h>
-#include <sys/types.h>
 #include <dirent.h>
 #include <errno.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+#include <sys/types.h>
+#include <sys/wait.h>
 #include <unistd.h>
+
+#include "../include/signals.h"
+#include "file_status.h"
 
 /**
  * @brief Changes the permissions of all files inside a directory, recursively
@@ -52,6 +55,8 @@ int recursive_change_mod_inner(const char* pathname, uint8_t depth) {
         // printf(" is dir: %d access mode: %o\n", is_dir(&status),
         //       get_access_perms(&status));
 
+        lock_process();
+
         if (is_dir(&status)) {
             fflush(NULL);  // flush the output buffer so that printf doesn't
                            // print both on parent and on child process
@@ -62,8 +67,14 @@ int recursive_change_mod_inner(const char* pathname, uint8_t depth) {
             }
 
             if (id == 0) {
+                sleep(1);
+                lock_process();
                 if (recursive_change_mod_inner(newPath, depth + 1)) exit(errno);
                 exit(0);
+            } else {
+                int wstat;
+                lock_process();
+                wait(&wstat);
             }
         } else {
             // <<<<<<<<<<< change permission of file here
