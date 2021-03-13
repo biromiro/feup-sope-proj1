@@ -1,3 +1,6 @@
+#ifndef INCLUDE_FILE_STATUS_H_
+#define INCLUDE_FILE_STATUS_H_
+
 #include <sys/stat.h>
 #include <stdbool.h>
 
@@ -42,3 +45,5 @@ bool is_slink(const struct stat* status);
  * @return the access permissions as an integer.
  **/
 int get_access_perms(const struct stat* status);
+
+#endif  // INCLUDE_FILE_STATUS_H_

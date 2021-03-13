@@ -1,15 +1,11 @@
-#pragma once
+#ifndef INCLUDE_ARGS_PARSER_H_
+#define INCLUDE_ARGS_PARSER_H_
+
+#include <sys/stat.h>
+#include <stddef.h>
+#include <stdbool.h>
 
 #include "error/exit_codes.h"
-#include <sys/stat.h>
-#include <ctype.h>
-#include <errno.h>
-#include <fcntl.h> /* Definition of AT_* constants */
-#include <stdbool.h>
-#include <stdio.h>
-#include <stdlib.h>
-#include <string.h>
-#include <unistd.h>
 
 #define ERROR_FLAG -1
 #define READ_VAL 4
@@ -79,38 +75,37 @@ int parse_args(cmd_args_t* args, int argc, char* argv[], char* envp[]);
 
 /**
  * Constructor of a perm_changes_t object.
- * 
+ *
  * @param type_u the 'user' permission change type
  * @param type_g the 'group' permission change type
  * @param type_o the 'other' permission change type
  */
 
-perm_changes_t create_perm_changes_t(
-    perm_change_type type_u,
-    perm_change_type type_g,
-    perm_change_type type_o);
+perm_changes_t create_perm_changes_t(perm_change_type type_u,
+                                     perm_change_type type_g,
+                                     perm_change_type type_o);
 
 /**
  * Parsed the xmod mode given by the command line arguments.
  *
  * @param mode the mode to parse
  */
-int parse_mode(char *mode, perm_operation_t *perms);
+int parse_mode(char* mode, perm_operation_t* perms);
 
 /**
  * Parses a given mode in octal into a perm_operation_t object.
- * 
+ *
  * @param mode the mode to parse
  * @param type the permission change types for the users
  */
-int parse_octal_mode(char *mode, perm_changes_t type, perm_operation_t *perms);
+int parse_octal_mode(char* mode, perm_changes_t type, perm_operation_t* perms);
 
 /**
  * Parses a given mode given in text mode into a perm_operation_t object.
- * 
+ *
  * @param mode the mode to parse
  */
-int parse_text_mode(char *mode, perm_operation_t *perms);
+int parse_text_mode(char* mode, perm_operation_t* perms);
 
 /**
  * Reads a defined user permission change and returns its value.
@@ -125,3 +120,5 @@ char parse_user_type_perms(char* user_perms);
  * @param perms the permissions to calculate
  */
 char get_sum_perms(char* perms);
+
+#endif  // INCLUDE_ARGS_PARSER_H_

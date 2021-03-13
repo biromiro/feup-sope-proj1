@@ -1,21 +1,29 @@
-#include "args_parser.h"
+#include "../include/args_parser.h"
+
+#include <stdio.h>
+#include <string.h>
+#include <stdlib.h>
+#include <ctype.h>
+#include <errno.h>
 
 /**
  * @brief Parse the options
- * The options are optional. This function will fill a cmd_args_t with valuable information.
- * In case of success returns 0 and if an option is not valid, returns the invalida character used.
- * It also returns the index for the next parser to evaluate
- * 
+ * The options are optional. This function will fill a cmd_args_t with valuable
+ * information. In case of success returns 0 and if an option is not valid,
+ * returns the invalida character used. It also returns the index for the next
+ * parser to evaluate
+ *
  * @param [out] args struct to fill information about the options
- * @param [out] last_arg index of the the argument for the next parser to evaluate
+ * @param [out] last_arg index of the the argument for the next parser to
+ * evaluate
  * @param argc
- * @param argv   
+ * @param argv
  */
-int parse_options(cmd_options_t *args, int *last_arg, int argc, char *argv[]) {
-    const char *valid_args = "vcR";
+int parse_options(cmd_options_t* args, int* last_arg, int argc, char* argv[]) {
+    const char* valid_args = "vcR";
     *last_arg = 1;
     for (size_t i = 1; i < argc; i++) {
-        const char *str = argv[i];
+        const char* str = argv[i];
         const size_t str_size = strlen(str);
         char curr[] = "";
         // Options can be in multiple strings: -v -R is valid
@@ -59,25 +67,23 @@ int parse_options(cmd_options_t *args, int *last_arg, int argc, char *argv[]) {
     return 0;
 }
 
-int parse_args(cmd_args_t *args, int argc, char *argv[], char *envp[]) {
+int parse_args(cmd_args_t* args, int argc, char* argv[], char* envp[]) {
     memset(args, 0, sizeof(cmd_args_t));
 
     int opt, next_op_idx;
     if ((opt = parse_options(&args->options, &next_op_idx, argc, argv)) != 0) {
-        fprintf(stderr,
-                "xmod: invalid option: '-%c'\n%s\n", opt, USAGE);
+        fprintf(stderr, "xmod: invalid option: '-%c'\n%s\n", opt, USAGE);
         exit(BAD_OPTION);
     }
 
     if (next_op_idx >= argc) {
-        fprintf(stderr,
-                "xmod: missing MODE\n%s\n", USAGE);
+        fprintf(stderr, "xmod: missing MODE\n%s\n", USAGE);
         exit(BAD_ARGS);
     }
 
     if (parse_mode(argv[next_op_idx], &args->mode) != 0) {
-        fprintf(stderr,
-                "xmod: invalid mode: '%s'\n%s\n", argv[next_op_idx], USAGE);
+        fprintf(stderr, "xmod: invalid mode: '%s'\n%s\n", argv[next_op_idx],
+                USAGE);
         exit(BAD_MODE);
     }
 
@@ -112,24 +118,33 @@ perm_change_type parse_perm_change_type(char del) {
     }
 }
 
-int parse_mode(char *mode, perm_operation_t *perm) {
+int parse_mode(char* mode, perm_operation_t* perm) {
     int res;
-    char *param = malloc(strlen(mode));
-    strcpy(param, mode);
+    char* param = malloc(strlen(mode) + 1);
+
+    if (param == NULL) {
+        perror("alloc param memory");
+        return errno;
+    }
+
+    if (snprintf(param, strlen(mode) + 1, "%s", mode) < 0) {
+        perror("cpy error");
+        return errno;
+    }
     if (!isdigit(param[0])) {
         res = parse_text_mode(param, perm);
     } else {
         res = parse_octal_mode(
-            param,
-            create_perm_changes(SUBSTITUTE, SUBSTITUTE, SUBSTITUTE),
+            param, create_perm_changes(SUBSTITUTE, SUBSTITUTE, SUBSTITUTE),
             perm);
     }
     free(param);
     return res;
 }
 
-int parse_octal_mode(char *mode, perm_changes_t types, perm_operation_t *perms) {
-    char *end;
+int parse_octal_mode(char* mode, perm_changes_t types,
+                     perm_operation_t* perms) {
+    char* end;
     mode_t code = strtol(mode, &end, 8);
     if (*end != '\0' || errno == EINVAL) {
         return ERROR_FLAG;
@@ -140,9 +155,9 @@ int parse_octal_mode(char *mode, perm_changes_t types, perm_operation_t *perms) 
     return 0;
 }
 
-int parse_text_mode(char *mode, perm_operation_t *perms) {
+int parse_text_mode(char* mode, perm_operation_t* perms) {
     char octal_val[5] = "0000";
-    char *begin_of_perm = strtok_r(mode, ",", &mode);
+    char* begin_of_perm = strtok_r(mode, ",", &mode);
 
     perm_change_type type_u = UNCHANGED, type_g = UNCHANGED, type_o = UNCHANGED;
 
@@ -180,49 +195,48 @@ int parse_text_mode(char *mode, perm_operation_t *perms) {
         }
         begin_of_perm = strtok_r(NULL, ",", &mode);
     }
-    return parse_octal_mode(
-        octal_val, create_perm_changes(type_u, type_g, type_o), perms);
+    return parse_octal_mode(octal_val,
+                            create_perm_changes(type_u, type_g, type_o), perms);
 }
 
-char parse_user_type_perms(char *user_perms) {
+char parse_user_type_perms(char* user_perms) {
     char delimiter = user_perms[1], user = user_perms[0];
     char delimiter_string[2];
 
-    sprintf(delimiter_string, "%c", delimiter);
+    snprintf(delimiter_string, sizeof(delimiter_string), "%c", delimiter);
 
-    if (strlen(user_perms) >= 3 &&
-        VALID_PERM(delimiter) &&
-        VALID_USER(user)) {
-        char *perms = strtok_r(user_perms, delimiter_string, &user_perms);
-        perms = strtok_r(NULL, delimiter_string, &user_perms);
+    if (strlen(user_perms) >= 3 && VALID_PERM(delimiter) && VALID_USER(user)) {
+        strtok_r(user_perms, delimiter_string, &user_perms);
+        char* perms = strtok_r(NULL, delimiter_string, &user_perms);
         return get_sum_perms(perms);
     }
     return ERROR_FLAG;
 }
 
-char get_sum_perms(char *perms) {
+char get_sum_perms(char* perms) {
     int sum = 0;
 
     char used[4] = "";
+    char *cur = used, *const end = used + sizeof(used);
 
     for (int i = 0; i < strlen(perms); ++i) {
         switch (perms[i]) {
             case 'r':
                 if (strstr(used, "r") == NULL) {
                     sum += READ_VAL;
-                    strcat(used, "r");
+                    cur += snprintf(cur, end - cur, "r");
                 }
                 break;
             case 'w':
                 if (strstr(used, "w") == NULL) {
                     sum += WRITE_VAL;
-                    strcat(used, "w");
+                    cur += snprintf(cur, end - cur, "w");
                 }
                 break;
             case 'x':
                 if (strstr(used, "x") == NULL) {
                     sum += EXEC_VAL;
-                    strcat(used, "x");
+                    cur += snprintf(cur, end - cur, "x");
                 }
                 break;
             default:

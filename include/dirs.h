@@ -1,4 +1,5 @@
-#include <stdint.h>
+#ifndef INCLUDE_DIRS_H_
+#define INCLUDE_DIRS_H_
 
 /**
  * @brief Changes the permissions of all files inside a directory, recursively
@@ -9,3 +10,5 @@
  * @return an error value.
  **/
 int recursive_change_mod(const char* pathname);
+
+#endif  // INCLUDE_DIRS_H_
