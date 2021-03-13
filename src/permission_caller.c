@@ -61,7 +61,7 @@ int get_new_perms(const char *pathname, perm_operation_t *permissions, mode_t *n
 
         *new_perm += (new_r + new_w + new_x) * get_octal_offset(offset);
     }
-    printf("%o", *new_perm);
+    printf("%o\n", *new_perm);
     return 0;
 }
 

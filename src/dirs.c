@@ -1,15 +1,16 @@
 #include "../include/dirs.h"
 
 #include <bits/stdint-uintn.h>
-#include <sys/types.h>
 #include <dirent.h>
 #include <errno.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+#include <sys/types.h>
 #include <unistd.h>
 
 #include "../include/file_status.h"
+#include "../include/permission_caller.h"
 
 /**
  * @brief Changes the permissions of all files inside a directory, recursively
@@ -31,7 +32,7 @@ int recursive_change_mod_inner(const char* pathname, uint8_t depth) {
     }
 
     // printf("IN %s-------\n", pathname);
-    // <<<<<<<<< change permission of dir here
+    //change_perms(pathname, permissions);
 
     struct dirent* directory_entry;
     struct stat status;
