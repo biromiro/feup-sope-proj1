@@ -5,6 +5,8 @@
 
 #define OCTAL_BASE 8
 
+int handle_change_mods(cmd_args_t *args, char* argv[]);
+
 /**
  * @brief Changes the permissions of a given file
  * 
@@ -13,7 +15,7 @@
  * 
  * @return 0 upon sucess, an error flag otherwise
  */
-int change_perms(const char *pathname, perm_operation_t *permissions);
+int change_perms(const char *pathname, cmd_args_t *args);
 
 /**
  * @brief Calculates the new permissions in octal
@@ -37,5 +39,9 @@ int get_new_perms(const char *pathname, perm_operation_t *permissions, mode_t cu
  * @return the corresponding offset in octal
  */
 int get_octal_offset(int offset);
+
+int print_chmod_call(mode_t current_permission, mode_t new_permission, const char * pathname, cmd_args_t *args);
+
+const char* get_permission_string(mode_t permission);
 
 #endif  // INCLUDE_PERMISSION_CALLER_H_

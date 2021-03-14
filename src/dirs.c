@@ -12,21 +12,12 @@
 #include "../include/file_status.h"
 #include "../include/permission_caller.h"
 
-/**
- * @brief Changes the permissions of all files inside a directory, recursively
- *opening directories inside it.
- *
- * @param[in] pathname string containing the pathname of the directory.
- * @param depth depth of the recursion.
- *
- * @return an error value.
- **/
-int recursive_change_mod_inner(const char* pathname, uint8_t depth, perm_operation_t* permissions) {
+int recursive_change_mod_inner(const char* pathname, unsigned short depth, cmd_args_t* args) {
     // used find ..  -printf '%M %p\n' | wc -l, and  ./xmod .. | wc -l, to test
     // if this func works correctly
 
     // printf("IN %s-------\n", pathname);
-    if (change_perms(pathname, permissions) != 0) {
+    if (change_perms(pathname, args) != 0) {
         perror("ERROR WHILE CHANGING PERMISSION!");
         return errno;
     }
@@ -73,12 +64,12 @@ int recursive_change_mod_inner(const char* pathname, uint8_t depth, perm_operati
             }
 
             if (id == 0) {
-                if (recursive_change_mod_inner(new_path, depth + 1, permissions))
+                if (recursive_change_mod_inner(new_path, depth + 1, args))
                     exit(errno);
                 exit(0);
             }
         } else {
-            if (change_perms(new_path, permissions) != 0) {
+            if (change_perms(new_path, args) != 0) {
                 perror("ERROR WHILE CHANGING PERMISSION!");
                 return errno;
             }
@@ -101,6 +92,6 @@ int recursive_change_mod_inner(const char* pathname, uint8_t depth, perm_operati
     return 0;
 }
 
-int recursive_change_mod(const char* pathname, perm_operation_t* permissions) {
-    return recursive_change_mod_inner(pathname, 0, permissions);
+int recursive_change_mod(const char* pathname, cmd_args_t* args) {
+    return recursive_change_mod_inner(pathname, 0, args);
 }

@@ -2,19 +2,49 @@
 
 #include <math.h>
 #include <stdio.h>
+#include <string.h>
 #include <sys/stat.h>
 
+#include "../include/dirs.h"
 #include "../include/file_status.h"
 
-int change_perms(const char *pathname, perm_operation_t *permissions) {
+int handle_change_mods(cmd_args_t *args, char *argv[]) {
+    //struct stat status;
+
+    for (size_t i = args->files_start; i < args->files_end; i++) {
+        /*if (get_status(argv[i], &status) != 0) {
+            fprintf(stderr,
+                    "xmod: cannot access '%s': No such file or directory\n",
+                    argv[i]);
+            continue;
+        }*/
+        if (args->options.recursive) {  //&& is_dir(&status)
+            //printf("folder: %s\n", argv[i]);
+            recursive_change_mod(argv[i], args);
+
+        } else {
+            change_perms(argv[i], args);
+            //printf("file: %s\n", argv[i]);
+        }
+    }
+
+    return 0;
+}
+
+int change_perms(const char *pathname, cmd_args_t *args) {
     int res, err;
     struct stat status;
 
-    if ((err = get_status(pathname, &status)) != 0) return err;
+    if ((err = get_status(pathname, &status)) != 0) {
+        fprintf(stderr,
+                "xmod: cannot access '%s': No such file or directory\n",
+                pathname);
+        return err;
+    }
 
     mode_t current_permission = get_access_perms(&status), new_permission = 0;
 
-    get_new_perms(pathname, permissions, current_permission, &new_permission);
+    get_new_perms(pathname, &args->mode, current_permission, &new_permission);
 
     //Always verbose, needs change accounting for options
 
@@ -22,10 +52,8 @@ int change_perms(const char *pathname, perm_operation_t *permissions) {
         perror("ERROR CALLING CHMOD");
         return res;
     }
-    if (current_permission == new_permission)
-        printf("mode of '%s' retained as %04o\n", pathname, new_permission);
-    else
-        printf("mode of '%s' changed from %04o to %04o\n", pathname, current_permission, new_permission);
+
+    print_chmod_call(current_permission, new_permission, pathname, args);
 
     return 0;
 }
@@ -86,4 +114,33 @@ int get_octal_offset(int offset) {
     }
 
     return res;
+}
+
+int print_chmod_call(mode_t current_permission, mode_t new_permission, const char *pathname, cmd_args_t *args) {
+    if (args->options.verbose && current_permission == new_permission)
+        printf("mode of '%s' retained as %04o (%s)\n", pathname, new_permission, get_permission_string(new_permission));
+    else if ((args->options.verbose || args->options.verbose_on_modify) && current_permission != new_permission)
+        printf("mode of '%s' changed from %04o (%s) to %04o (%s)\n", pathname, current_permission,
+               get_permission_string(current_permission), new_permission, get_permission_string(new_permission));
+    return 0;
+}
+
+const char *get_permission_string(mode_t permission) {
+    char *permission_substrings[8] = {"---", "--x", "-w-",
+                                      "-wx", "r--", "r-x",
+                                      "rw-", "rwx"};
+
+    char permission_string_arr[10] = "";
+    char *permission_string = permission_string_arr, permission_octal[4] = "";
+
+    snprintf(permission_octal, 4, "%o", permission);
+
+    size_t digit1 = permission_octal[0] - '0',
+           digit2 = permission_octal[1] - '0',
+           digit3 = permission_octal[2] - '0';
+
+    snprintf(permission_string, 10, "%s%s%s", permission_substrings[digit1],
+             permission_substrings[digit2], permission_substrings[digit3]);
+
+    return permission_string;
 }
