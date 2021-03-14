@@ -1,10 +1,10 @@
 #include "../include/args_parser.h"
 
-#include <stdio.h>
-#include <string.h>
-#include <stdlib.h>
 #include <ctype.h>
 #include <errno.h>
+#include <stdio.h>
+#include <stdlib.h>
+#include <string.h>
 
 /**
  * @brief Parse the options
@@ -157,43 +157,38 @@ int parse_octal_mode(char* mode, perm_changes_t types,
 
 int parse_text_mode(char* mode, perm_operation_t* perms) {
     char octal_val[5] = "0000";
-    char* begin_of_perm = strtok_r(mode, ",", &mode);
-
     perm_change_type type_u = UNCHANGED, type_g = UNCHANGED, type_o = UNCHANGED;
 
-    while (begin_of_perm != NULL) {
-        char user = begin_of_perm[0], delimiter = begin_of_perm[1];
-        char new_octal_val = parse_user_type_perms(begin_of_perm);
+    char user = mode[0], delimiter = mode[1];
+    char new_octal_val = parse_user_type_perms(mode);
 
-        if (new_octal_val == ERROR_FLAG) return ERROR_FLAG;
+    if (new_octal_val == ERROR_FLAG) return ERROR_FLAG;
 
-        switch (user) {
-            case 'u':
-                octal_val[1] = new_octal_val;
-                type_u = parse_perm_change_type(delimiter);
-                break;
-            case 'g':
-                octal_val[2] = new_octal_val;
-                type_g = parse_perm_change_type(delimiter);
-                break;
-            case 'o':
-                octal_val[3] = new_octal_val;
-                type_o = parse_perm_change_type(delimiter);
-                break;
-            case 'a':
-                octal_val[1] = new_octal_val;
-                octal_val[2] = new_octal_val;
-                octal_val[3] = new_octal_val;
-                type_u = parse_perm_change_type(delimiter);
-                type_g = type_u;
-                type_o = type_u;
+    switch (user) {
+        case 'u':
+            octal_val[1] = new_octal_val;
+            type_u = parse_perm_change_type(delimiter);
+            break;
+        case 'g':
+            octal_val[2] = new_octal_val;
+            type_g = parse_perm_change_type(delimiter);
+            break;
+        case 'o':
+            octal_val[3] = new_octal_val;
+            type_o = parse_perm_change_type(delimiter);
+            break;
+        case 'a':
+            octal_val[1] = new_octal_val;
+            octal_val[2] = new_octal_val;
+            octal_val[3] = new_octal_val;
+            type_u = parse_perm_change_type(delimiter);
+            type_g = type_u;
+            type_o = type_u;
 
-                break;
-            default: {
-                return ERROR_FLAG;
-            }
+            break;
+        default: {
+            return ERROR_FLAG;
         }
-        begin_of_perm = strtok_r(NULL, ",", &mode);
     }
     return parse_octal_mode(octal_val,
                             create_perm_changes(type_u, type_g, type_o), perms);
