@@ -5,7 +5,6 @@
 #include <stdlib.h>
 #include <string.h>
 #include <sys/types.h>
-#include <sys/wait.h>
 #include <unistd.h>
 
 #include "../include/signals.h"
@@ -72,9 +71,7 @@ int recursive_change_mod_inner(const char* pathname, uint8_t depth) {
                 if (recursive_change_mod_inner(newPath, depth + 1)) exit(errno);
                 exit(0);
             } else {
-                int wstat;
-                lock_process();
-                wait(&wstat);
+                lock_wait_process();
             }
         } else {
             // <<<<<<<<<<< change permission of file here

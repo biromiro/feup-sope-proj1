@@ -2,10 +2,10 @@
 
 #include <ctype.h>
 #include <signal.h>
-#include <stdbool.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <sys/types.h>
+#include <sys/wait.h>
 #include <unistd.h>
 
 #include "../include/aux.h"
@@ -13,13 +13,18 @@
 
 static bool waiting = false;
 
-/**
- * @brief Verifies if process is waiting for user feedback
- *
- * @return process waiting for user feedback
- */
 bool is_waiting() {
     return waiting;
+}
+
+void lock_wait_process() {
+    int wstat;
+    while (1) {
+        if (waiting)
+            continue;
+        if (wait(&wstat) > 0)
+            break;
+    }
 }
 
 void lock_process() {
