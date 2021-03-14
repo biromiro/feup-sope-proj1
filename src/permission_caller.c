@@ -20,9 +20,9 @@ int change_perms(const char *pathname, perm_operation_t *permissions) {
 
     if ((res = chmod(pathname, new_permission)) == 0) {
         if (current_permission == new_permission)
-            printf("mode of '%s' retained as 0%o\n", pathname, new_permission);
+            printf("mode of '%s' retained as %04o\n", pathname, new_permission);
         else
-            printf("mode of '%s' changed from 0%o to 0%o\n", pathname, current_permission, new_permission);
+            printf("mode of '%s' changed from %04o to %04o\n", pathname, current_permission, new_permission);
     }
 
     return res;
