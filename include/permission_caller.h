@@ -5,6 +5,14 @@
 
 #define OCTAL_BASE 8
 
+/**
+ * @brief Handles the chmod call and takes into account the options given
+ * 
+ * @param args the parsed arguments given
+ * @param argv the command line arguments
+ * 
+ * @return 0 upon sucess, an error flag otherwise
+ */
 int handle_change_mods(cmd_args_t *args, char* argv[]);
 
 /**
@@ -40,8 +48,25 @@ int get_new_perms(const char *pathname, perm_operation_t *permissions, mode_t cu
  */
 int get_octal_offset(int offset);
 
+/**
+ * @brief Prints the chmod call information according to the options given
+ * 
+ * @param current_permission the permission the file currently has
+ * @param new_permission the new permission given to the file
+ * @param pathname the path to the file
+ * @param args the arguments given
+ * 
+ * @return 0 upon sucess, an error flag otherwise
+ */
 int print_chmod_call(mode_t current_permission, mode_t new_permission, const char * pathname, cmd_args_t *args);
 
+/**
+ * @brief Gets the permission string in rwx terms for each group
+ * 
+ * @param permission the permission to calculate the string for
+ * 
+ * @return the permission string
+ */
 const char* get_permission_string(mode_t permission);
 
 #endif  // INCLUDE_PERMISSION_CALLER_H_

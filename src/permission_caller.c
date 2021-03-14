@@ -10,6 +10,7 @@
 
 int handle_change_mods(cmd_args_t *args, char *argv[]) {
     //struct stat status;
+    int err;
 
     for (size_t i = args->files_start; i < args->files_end; i++) {
         /*if (get_status(argv[i], &status) != 0) {
@@ -20,10 +21,18 @@ int handle_change_mods(cmd_args_t *args, char *argv[]) {
         }*/
         if (args->options.recursive) {  //&& is_dir(&status)
             //printf("folder: %s\n", argv[i]);
-            recursive_change_mod(argv[i], args);
+            if ((err = recursive_change_mod(argv[i], args)) != 0) {
+                fprintf(stderr,
+                        "xmod: %s\n", strerror(err));
+                return err;
+            }
 
         } else {
-            change_perms(argv[i], args);
+            if ((err = change_perms(argv[i], args)) != 0) {
+                fprintf(stderr,
+                        "xmod: %s\n", strerror(err));
+                return err;
+            }
             //printf("file: %s\n", argv[i]);
         }
     }
