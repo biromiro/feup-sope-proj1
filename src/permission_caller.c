@@ -18,14 +18,16 @@ int change_perms(const char *pathname, perm_operation_t *permissions) {
 
     //Always verbose, needs change accounting for options
 
-    if ((res = chmod(pathname, new_permission)) == 0) {
-        if (current_permission == new_permission)
-            printf("mode of '%s' retained as %04o\n", pathname, new_permission);
-        else
-            printf("mode of '%s' changed from %04o to %04o\n", pathname, current_permission, new_permission);
+    if ((res = chmod(pathname, new_permission))) {
+        perror("ERROR CALLING CHMOD");
+        return res;
     }
+    if (current_permission == new_permission)
+        printf("mode of '%s' retained as %04o\n", pathname, new_permission);
+    else
+        printf("mode of '%s' changed from %04o to %04o\n", pathname, current_permission, new_permission);
 
-    return res;
+    return 0;
 }
 
 int get_new_perms(const char *pathname, perm_operation_t *permissions, mode_t current_perm, mode_t *new_perm) {
