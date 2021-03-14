@@ -38,7 +38,7 @@ int get_new_perms(const char *pathname, perm_operation_t *permissions, mode_t cu
     for (int offset = 0; offset < 3; offset++) {
         //current permissions for read, write and execute
 
-        int permission_digit = (current_perm / get_octal_offset(offset)) % OCTAL_BASE;
+        int octal_offset = get_octal_offset(offset), permission_digit = (current_perm / octal_offset) % OCTAL_BASE;
 
         int current_r = (permission_digit / READ_VAL) * READ_VAL, rest_r = permission_digit % READ_VAL;
         int current_w = (rest_r / WRITE_VAL) * WRITE_VAL, rest_w = rest_r % WRITE_VAL;
@@ -74,7 +74,7 @@ int get_new_perms(const char *pathname, perm_operation_t *permissions, mode_t cu
                 break;
         }
 
-        *new_perm += (new_r + new_w + new_x) * get_octal_offset(offset);
+        *new_perm += (new_r + new_w + new_x) * octal_offset;
     }
     return 0;
 }
