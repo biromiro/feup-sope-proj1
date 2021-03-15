@@ -50,10 +50,7 @@ int main(int argc, char* argv[], char* envp[]) {
 
     printf("\nFiles: %lu %zu %zu\n", (args.files_end - args.files_start),
            (args.files_start), (args.files_end));
-    for (size_t i = args.files_start; i < args.files_end; i++) {
-        printf("- %s\n", argv[i]);
-        handle_change_mods(&args, argv);
-    }
+    handle_change_mods(&args, argv);
 
     return 0;
 }
