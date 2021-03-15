@@ -12,7 +12,7 @@
 #include "../include/file_status.h"
 #include "../include/permission_caller.h"
 
-int recursive_change_mod_inner(const char* pathname, unsigned short depth, cmd_args_t* args) {
+int recursive_change_mod_inner(const char* pathname, uint16_t depth, cmd_args_t* args) {
     // used find ..  -printf '%M %p\n' | wc -l, and  ./xmod .. | wc -l, to test
     // if this func works correctly
 
@@ -25,6 +25,7 @@ int recursive_change_mod_inner(const char* pathname, unsigned short depth, cmd_a
     DIR* directory = opendir(pathname);
 
     if (directory == NULL) {
+        closedir(directory);
         perror("ERROR WHILE OPENING DIRECTORY");
         return errno;
     }
@@ -64,12 +65,16 @@ int recursive_change_mod_inner(const char* pathname, unsigned short depth, cmd_a
             }
 
             if (id == 0) {
-                if (recursive_change_mod_inner(new_path, depth + 1, args))
+                if (recursive_change_mod_inner(new_path, depth + 1, args)) {
+                    closedir(directory);
                     exit(errno);
+                }
+                closedir(directory);
                 exit(0);
             }
         } else {
             if (change_perms(new_path, args) != 0) {
+                closedir(directory);
                 perror("ERROR WHILE CHANGING PERMISSION!");
                 return errno;
             }
