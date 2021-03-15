@@ -1,6 +1,6 @@
+#include <errno.h>
 #include <stdint.h>
 #include <stdio.h>
-#include <errno.h>
 #include <stdlib.h>
 
 #include "../include/args_parser.h"
@@ -8,6 +8,7 @@
 #include "../include/error/exit_codes.h"
 #include "../include/file_status.h"
 #include "../include/logger.h"
+#include "../include/permission_caller.h"
 
 void cleanup(void) { close_log(); }
 
@@ -49,9 +50,7 @@ int main(int argc, char* argv[], char* envp[]) {
 
     printf("\nFiles: %lu %zu %zu\n", (args.files_end - args.files_start),
            (args.files_start), (args.files_end));
-    for (size_t i = args.files_start; i < args.files_end; i++) {
-        printf("- %s\n", argv[i]);
-    }
+    handle_change_mods(&args, argv);
 
     return 0;
 }

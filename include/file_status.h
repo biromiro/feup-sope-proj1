@@ -13,7 +13,7 @@
  *
  * @return an error value.
  **/
-int get_status(const char* pathname, struct stat* status);
+int get_status(const char* const pathname, struct stat* status);
 
 /**
  * @brief Checks if a file is a directory, given its status.
