@@ -66,7 +66,6 @@ int recursive_change_mod_inner(const char* pathname, uint8_t depth) {
             }
 
             if (id == 0) {
-                sleep(1);
                 lock_process();
                 if (recursive_change_mod_inner(newPath, depth + 1)) exit(errno);
                 exit(0);

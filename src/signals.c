@@ -34,11 +34,30 @@ void lock_process() {
     }
 }
 
-bool is_root_process() {
-    return getpid() == getpgrp();
+/**
+ * @brief First process - the "oldest" parent
+ * 
+ * @return first process of the chain
+ */
+int get_super_process() {
+    return getpgrp();
 }
 
+/**
+ * Is the root process
+ * 
+ * @return true if root process
+ */
+bool is_root_process() {
+    return getpid() == get_super_process();
+}
+
+/**
+ * @brief Waits for children to print their info about the process after SIGKILL
+ */
 void wait_for_children() {
+    while (time(NULL) <= last_recv) {
+    }
 }
 
 /**
@@ -63,8 +82,7 @@ void sig_int_process() {
     if (is_root_process()) {
         last_recv = time(NULL);
 
-        while (time(NULL) <= last_recv) {
-        }
+        wait_for_children();
 
         printf("Do you want to exit? (y/Y or other to continue)\n");
         char c = get_clean_char();
@@ -78,7 +96,7 @@ void sig_int_process() {
                 break;
         }
     } else {
-        kill(getpgrp(), SIGUSR1);
+        kill(get_super_process(), SIGUSR1);
     }
 }
 
