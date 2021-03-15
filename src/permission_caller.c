@@ -151,6 +151,9 @@ void get_permission_string(mode_t permission, char *perm_string,
     char permission_octal[4] = "";
 
     snprintf(permission_octal, sizeof(permission_octal), "%o", permission);
+    snprintf(permission_octal, sizeof(permission_octal), "%.*d%o",
+             (int)(sizeof(permission_octal) - strlen(permission_octal) - 1),
+             0, permission);
 
     size_t digit1 = permission_octal[0] - '0',
            digit2 = permission_octal[1] - '0',
