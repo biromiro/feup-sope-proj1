@@ -8,4 +8,4 @@
  */
 int get_clean_char();
 
-#endif
+#endif  // INCLUDE_AUX_H_

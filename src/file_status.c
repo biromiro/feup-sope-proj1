@@ -1,8 +1,8 @@
-#include <sys/stat.h>
-#include <stdbool.h>
+#include "../include/file_status.h"
+
 #include <stdio.h>
 
-int get_status(const char* pathname, struct stat* status) {
+int get_status(const char* const pathname, struct stat* status) {
     int err;
 
     if ((err = stat(pathname, status))) {

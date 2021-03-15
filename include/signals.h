@@ -1,5 +1,5 @@
-#ifndef INCLUDE_SIGS_H_
-#define INCLUDE_SIGS_H_
+#ifndef INCLUDE_SIGNALS_H_
+#define INCLUDE_SIGNALS_H_
 
 #define ERR_SIGACTION 2
 #define ERR_SIGEMPTYMASK 3
@@ -32,4 +32,4 @@ void lock_process();
 
 int sig_log_register(int signo);
 
-#endif  // INCLUDE_SIGS_H
+#endif  // INCLUDE_SIGNALS_H_

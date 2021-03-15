@@ -1,5 +1,5 @@
-#ifndef LOGGER_H_
-#define LOGGER_H_
+#ifndef INCLUDE_LOGGER_H_
+#define INCLUDE_LOGGER_H_
 
 #include <stdbool.h>
 
@@ -54,4 +54,4 @@ int write_log(enum Event event, const char* info);
  **/
 int close_log();
 
-#endif  // LOGGER_H_
+#endif  // INCLUDE_LOGGER_H_

@@ -1,3 +1,6 @@
+#ifndef INCLUDE_FILE_STATUS_H_
+#define INCLUDE_FILE_STATUS_H_
+
 #include <sys/stat.h>
 #include <stdbool.h>
 
@@ -10,7 +13,7 @@
  *
  * @return an error value.
  **/
-int get_status(const char* pathname, struct stat* status);
+int get_status(const char* const pathname, struct stat* status);
 
 /**
  * @brief Checks if a file is a directory, given its status.
@@ -42,3 +45,5 @@ bool is_slink(const struct stat* status);
  * @return the access permissions as an integer.
  **/
 int get_access_perms(const struct stat* status);
+
+#endif  // INCLUDE_FILE_STATUS_H_

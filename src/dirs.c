@@ -1,3 +1,5 @@
+#include "../include/dirs.h"
+
 #include <bits/stdint-uintn.h>
 #include <dirent.h>
 #include <errno.h>
@@ -7,8 +9,9 @@
 #include <sys/types.h>
 #include <unistd.h>
 
+#include "../include/file_status.h"
+#include "../include/permission_caller.h"
 #include "../include/signals.h"
-#include "file_status.h"
 
 /**
  * @brief Changes the permissions of all files inside a directory, recursively
@@ -19,9 +22,23 @@
  *
  * @return an error value.
  **/
-int recursive_change_mod_inner(const char* pathname, uint8_t depth) {
+
+int recursive_change_mod_inner(const char* pathname, uint16_t depth, cmd_args_t* args) {
     // used find ..  -printf '%M %p\n' | wc -l, and  ./xmod .. | wc -l, to test
     // if this func works correctly
+
+    // printf("IN %s-------\n", pathname);
+    struct stat status;
+
+    if (get_status(pathname, &status)) {
+        return errno;
+    }
+
+    if (change_perms(pathname, args, &status) != 0) {
+        perror("ERROR WHILE CHANGING PERMISSION!");
+        return errno;
+    }
+
     DIR* directory = opendir(pathname);
 
     if (directory == NULL) {
@@ -29,12 +46,9 @@ int recursive_change_mod_inner(const char* pathname, uint8_t depth) {
         return errno;
     }
 
-    // printf("IN %s-------\n", pathname);
-    // <<<<<<<<< change permission of dir here
-
     struct dirent* directory_entry;
-    struct stat status;
-    char newPath[(depth + 1) * MAXNAMLEN + 2];
+    const size_t kPath_size = (depth + 2) * MAXNAMLEN + 2;
+    char new_path[kPath_size];
 
     errno = 0;
     while ((directory_entry = readdir(directory)) != NULL) {
@@ -42,12 +56,13 @@ int recursive_change_mod_inner(const char* pathname, uint8_t depth) {
             !strcmp(directory_entry->d_name, "."))
             continue;
 
-        snprintf(newPath, (depth + 1) * MAXNAMLEN + 2, "%s/%s", pathname,
+        snprintf(new_path, kPath_size, "%s/%s", pathname,
                  directory_entry->d_name);
-        printf("%s\n", newPath);
+        // printf("%s\n", new_path);
         // printf("CUR DIR: %s length %d", newPath, directory_entry->d_reclen);
 
-        if (get_status(newPath, &status)) {
+        if (get_status(new_path, &status)) {
+            closedir(directory);
             return errno;
         }
 
@@ -61,23 +76,33 @@ int recursive_change_mod_inner(const char* pathname, uint8_t depth) {
                            // print both on parent and on child process
             int id = fork();
             if (id == -1) {
+                closedir(directory);
                 perror("fork error");
                 return errno;
             }
 
             if (id == 0) {
                 lock_process();
-                if (recursive_change_mod_inner(newPath, depth + 1)) exit(errno);
+                if (recursive_change_mod_inner(new_path, depth + 1, args)) {
+                    closedir(directory);
+                    exit(errno);
+                }
+                closedir(directory);
                 exit(0);
             } else {
                 lock_wait_process();
             }
         } else {
-            // <<<<<<<<<<< change permission of file here
+            if (change_perms(new_path, args, &status) != 0) {
+                closedir(directory);
+                perror("ERROR WHILE CHANGING PERMISSION!");
+                return errno;
+            }
         }
     }
 
     if (errno != 0) {
+        closedir(directory);
         perror("ERROR GETTING NEXT DIR");
         return errno;
     }
@@ -92,6 +117,6 @@ int recursive_change_mod_inner(const char* pathname, uint8_t depth) {
     return 0;
 }
 
-int recursive_change_mod(const char* pathname) {
-    return recursive_change_mod_inner(pathname, 0);
+int recursive_change_mod(const char* pathname, cmd_args_t* args) {
+    return recursive_change_mod_inner(pathname, 0, args);
 }
