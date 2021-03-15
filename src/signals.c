@@ -1,6 +1,7 @@
 #include "../include/signals.h"
 
 #include <ctype.h>
+#include <errno.h>
 #include <signal.h>
 #include <stdio.h>
 #include <stdlib.h>
@@ -70,6 +71,7 @@ void handle_sig_int() {
  * @brief Handler to be called when SIGINT is received
  */
 void sig_int_process() {
+    errno = 0;
     if (waiting) {
         // printf("Process killed\n");
         exit(1);
@@ -106,6 +108,7 @@ void sig_int_process() {
  *user wants to continue execution after SIGINT
  */
 void sig_cont_process() {
+    errno = 0;
     if (waiting) {
         // printf("Continue process\n");
         waiting = false;
@@ -117,6 +120,7 @@ void sig_cont_process() {
  * This signal indicates that a specific children printed its log after SIGINT
  */
 void sig_recv_children() {
+    errno = 0;
     last_recv = time(NULL);
 }
 

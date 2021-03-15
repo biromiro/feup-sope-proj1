@@ -77,10 +77,10 @@ int recursive_change_mod_inner(const char* pathname, uint8_t depth) {
         }
     }
 
-    // if (errno != 0) {
-    //     perror("ERROR GETTING NEXT DIR");
-    //     return errno;
-    // }
+    if (errno != 0) {
+        perror("ERROR GETTING NEXT DIR");
+        return errno;
+    }
 
     if (closedir(directory)) {
         perror("ERROR WHILE CLOSING DIR");
