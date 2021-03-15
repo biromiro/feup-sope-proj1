@@ -131,14 +131,15 @@ int print_chmod_call(mode_t current_permission, mode_t new_permission,
     get_permission_string(new_permission, new_perm_string, sizeof(new_perm_string));
     get_permission_string(current_permission, cur_perm_string, sizeof(cur_perm_string));
 
-    if (args->options.verbose && current_permission == new_permission)
+    if (args->options.verbose && current_permission == new_permission) {
         printf("mode of '%s' retained as %04o (%s)\n", pathname, new_permission,
                new_perm_string);
-    else if ((args->options.verbose || args->options.verbose_on_modify) &&
-             current_permission != new_permission)
+    } else if ((args->options.verbose || args->options.verbose_on_modify) &&
+               current_permission != new_permission) {
         printf("mode of '%s' changed from %04o (%s) to %04o (%s)\n", pathname,
                current_permission, cur_perm_string, new_permission,
                new_perm_string);
+    }
 
     return 0;
 }
