@@ -54,6 +54,11 @@ struct sigaction sig_def_term;
 
 void log_term(int signo) {
     printf("PROCESS TERMINATED\n");
+
+    signal(signo, SIG_DFL);
+    raise(signo);
+
+    signal(signo, log_term);
 }
 void sighandler(int signo) {
     if (waiting) {
@@ -141,8 +146,6 @@ void setup_handler() {
 
     if (sigaction(SIGTERM, &new, &sig_def_term) == -1)
         perror("sigaction");
-
-    printf("flag: %d\n", sig_def_term.sa_flags);
 }
 
 int main(int argc, char *argv[], char *envp[]) {
