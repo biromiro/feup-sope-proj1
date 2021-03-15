@@ -50,6 +50,11 @@ void exchange_pipe(pipe_protocol_t stat) {
     }
 }
 
+struct sigaction sig_def_term;
+
+void log_term(int signo) {
+    printf("PROCESS TERMINATED\n");
+}
 void sighandler(int signo) {
     if (waiting) {
         printf("Process killed\n");
@@ -63,7 +68,7 @@ void sighandler(int signo) {
         while (time(NULL) <= last_recv) {
         }
 
-        printf("Do you want to exit? (y/Y or n/N)\n");
+        printf("Do you want to exit? (y/Y to exit or other to continue)\n");
         char c = get_clean_char();
         printf("CHAR OBTAINED: %c\n", c);
         switch (toupper(c)) {
@@ -78,7 +83,7 @@ void sighandler(int signo) {
                 break;
         }
     } else {
-        kill(getpgrp(), SIGUSR1);
+        kill(getpgrp(), SIGCHLD);
     }
 }
 
@@ -124,8 +129,20 @@ void setup_handler() {
     new.sa_mask = smask;
     new.sa_flags = 0;
 
-    if (sigaction(SIGUSR1, &new, &old) == -1)
+    if (sigaction(SIGCHLD, &new, &old) == -1)
         perror("sigaction");
+
+    if (sigemptyset(&smask) == -1)
+        perror("mask");
+
+    new.sa_handler = log_term;
+    new.sa_mask = smask;
+    new.sa_flags = 0;
+
+    if (sigaction(SIGTERM, &new, &sig_def_term) == -1)
+        perror("sigaction");
+
+    printf("flag: %d\n", sig_def_term.sa_flags);
 }
 
 int main(int argc, char *argv[], char *envp[]) {
@@ -149,7 +166,7 @@ int main(int argc, char *argv[], char *envp[]) {
             }
             while (waiting) {
             }
-
+            sleep(1);
             return fexecve(fd, cmdline, newenviron);
 
         default: {
