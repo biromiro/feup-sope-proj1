@@ -15,6 +15,7 @@
 #include <sys/stat.h>
 #include <sys/types.h>
 #include <sys/wait.h>
+#include <time.h>
 #include <unistd.h>
 
 // preparation for execve:
@@ -23,6 +24,7 @@ char *newenviron[] = {"USER=Linus", NULL};
 
 static bool waiting = false;
 static pid_t id = -1;
+static time_t last_recv;
 
 int get_clean_char() {
     char c = getchar(), tmp;
@@ -57,7 +59,10 @@ void sighandler(int signo) {
 
     printf("%d ; %s ; %d ; %d \n", getpid(), id > 0 ? "random_file" : "child", 5, 4);
     if (getpid() == getpgrp()) {
-        sleep(0.5);
+        last_recv = time(NULL);
+        while (time(NULL) <= last_recv) {
+        }
+
         printf("Do you want to exit? (y/Y or n/N)\n");
         char c = get_clean_char();
         printf("CHAR OBTAINED: %c\n", c);
@@ -72,6 +77,8 @@ void sighandler(int signo) {
                 killpg(getpgrp(), SIGCONT);
                 break;
         }
+    } else {
+        kill(getpgrp(), SIGUSR1);
     }
 }
 
@@ -80,6 +87,10 @@ void cont_processes() {
         printf("Continue process\n");
         waiting = false;
     }
+}
+
+void cool() {
+    last_recv = time(NULL);
 }
 
 void setup_handler() {
@@ -105,6 +116,16 @@ void setup_handler() {
 
     if (sigaction(SIGCONT, &new, &old) == -1)
         perror("sigaction");
+
+    if (sigemptyset(&smask) == -1)
+        perror("mask");
+
+    new.sa_handler = cool;
+    new.sa_mask = smask;
+    new.sa_flags = 0;
+
+    if (sigaction(SIGUSR1, &new, &old) == -1)
+        perror("sigaction");
 }
 
 int main(int argc, char *argv[], char *envp[]) {
@@ -126,7 +147,6 @@ int main(int argc, char *argv[], char *envp[]) {
                 perror("open");
                 exit(3);
             }
-            sleep(1);
             while (waiting) {
             }
 
