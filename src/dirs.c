@@ -12,7 +12,10 @@
 #include "../include/file_status.h"
 #include "../include/permission_caller.h"
 
-int recursive_change_mod_inner(const char* pathname, uint16_t depth, cmd_args_t* args) {
+int recursive_change_mod(const char* pathname,
+                         cmd_args_t* args,
+                         char* argv[],
+                         char* envp[]) {
     // used find ..  -printf '%M %p\n' | wc -l, and  ./xmod .. | wc -l, to test
     // if this func works correctly
 
@@ -36,7 +39,7 @@ int recursive_change_mod_inner(const char* pathname, uint16_t depth, cmd_args_t*
     }
 
     struct dirent* directory_entry;
-    const size_t kPath_size = (depth + 2) * MAXNAMLEN + 2;
+    const size_t kPath_size = (strlen(pathname)) + MAXNAMLEN + 2;
     char new_path[kPath_size];
 
     errno = 0;
@@ -69,12 +72,13 @@ int recursive_change_mod_inner(const char* pathname, uint16_t depth, cmd_args_t*
             }
 
             if (id == 0) {
-                if (recursive_change_mod_inner(new_path, depth + 1, args)) {
-                    closedir(directory);
-                    exit(errno);
-                }
                 closedir(directory);
-                exit(0);
+
+                argv[args->files_start] = new_path;
+                if (args->files_end > args->files_start + 1)
+                    argv[args->files_start + 1] = 0;
+
+                return execve("xmod", argv, envp);
             }
         } else {
             if (change_perms(new_path, args, &status) != 0) {
@@ -99,8 +103,4 @@ int recursive_change_mod_inner(const char* pathname, uint16_t depth, cmd_args_t*
     // printf("LEAVING %s----------\n", pathname);
 
     return 0;
-}
-
-int recursive_change_mod(const char* pathname, cmd_args_t* args) {
-    return recursive_change_mod_inner(pathname, 0, args);
 }

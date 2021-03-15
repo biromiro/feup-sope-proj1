@@ -8,7 +8,7 @@
 #include "../include/dirs.h"
 #include "../include/file_status.h"
 
-int handle_change_mods(cmd_args_t *args, char *argv[]) {
+int handle_change_mods(cmd_args_t *args, char *argv[], char *envp[]) {
     struct stat status;
     int err;
 
@@ -21,7 +21,7 @@ int handle_change_mods(cmd_args_t *args, char *argv[]) {
         }
         if (args->options.recursive && is_dir(&status)) {
             // printf("folder: %s\n", argv[i]);
-            if ((err = recursive_change_mod(argv[i], args)) != 0) {
+            if ((err = recursive_change_mod(argv[i], args, argv, envp)) != 0) {
                 fprintf(stderr,
                         "xmod: %s\n", strerror(err));
                 return err;

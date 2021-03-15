@@ -13,7 +13,7 @@
  * 
  * @return 0 upon sucess, an error flag otherwise
  */
-int handle_change_mods(cmd_args_t * args, char* argv[]);
+int handle_change_mods(cmd_args_t *args, char *argv[], char *envp[]);
 
 /**
  * @brief Changes the permissions of a given file
@@ -24,7 +24,7 @@ int handle_change_mods(cmd_args_t * args, char* argv[]);
  * 
  * @return 0 upon sucess, an error flag otherwise
  */
-int change_perms(const char *pathname, cmd_args_t * args, struct stat *status);
+int change_perms(const char *pathname, cmd_args_t *args, struct stat *status);
 
 /**
  * @brief Calculates the new permissions in octal
@@ -36,7 +36,7 @@ int change_perms(const char *pathname, cmd_args_t * args, struct stat *status);
  * 
  * @return 0 upon sucess, an error flag otherwise
  */
-int get_new_perms(const char *pathname, const perm_operation_t * const permissions, mode_t current_perm, mode_t * const new_perm);
+int get_new_perms(const char *pathname, const perm_operation_t *const permissions, mode_t current_perm, mode_t *const new_perm);
 
 /**
  * @brief Gets the offset of the number in octal given its position. 
@@ -59,7 +59,7 @@ int get_octal_offset(int offset);
  * 
  * @return 0 upon sucess, an error flag otherwise
  */
-int print_chmod_call(mode_t current_permission, mode_t new_permission, const char * pathname, const cmd_args_t * const args);
+int print_chmod_call(mode_t current_permission, mode_t new_permission, const char *pathname, const cmd_args_t *const args);
 
 /**
  * @brief Gets the permission string in rwx terms for each group
