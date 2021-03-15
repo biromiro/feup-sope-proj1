@@ -20,10 +20,11 @@ int handle_change_mods(cmd_args_t * args, char* argv[]);
  * 
  * @param[in] pathname the path of the file to change
  * @param[in] permissions the permissions to change the file to
+ * @param[in] status the current file status
  * 
  * @return 0 upon sucess, an error flag otherwise
  */
-int change_perms(const char *pathname, cmd_args_t * args);
+int change_perms(const char *pathname, cmd_args_t * args, struct stat *status);
 
 /**
  * @brief Calculates the new permissions in octal

@@ -17,7 +17,13 @@ int recursive_change_mod_inner(const char* pathname, uint16_t depth, cmd_args_t*
     // if this func works correctly
 
     // printf("IN %s-------\n", pathname);
-    if (change_perms(pathname, args) != 0) {
+    struct stat status;
+
+    if (get_status(pathname, &status)) {
+        return errno;
+    }
+
+    if (change_perms(pathname, args, &status) != 0) {
         perror("ERROR WHILE CHANGING PERMISSION!");
         return errno;
     }
@@ -30,7 +36,6 @@ int recursive_change_mod_inner(const char* pathname, uint16_t depth, cmd_args_t*
     }
 
     struct dirent* directory_entry;
-    struct stat status;
     const size_t kPath_size = (depth + 2) * MAXNAMLEN + 2;
     char new_path[kPath_size];
 
@@ -72,7 +77,7 @@ int recursive_change_mod_inner(const char* pathname, uint16_t depth, cmd_args_t*
                 exit(0);
             }
         } else {
-            if (change_perms(new_path, args) != 0) {
+            if (change_perms(new_path, args, &status) != 0) {
                 closedir(directory);
                 perror("ERROR WHILE CHANGING PERMISSION!");
                 return errno;

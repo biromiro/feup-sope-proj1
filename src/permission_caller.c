@@ -28,7 +28,7 @@ int handle_change_mods(cmd_args_t *args, char *argv[]) {
             }
 
         } else {
-            if ((err = change_perms(argv[i], args)) != 0) {
+            if ((err = change_perms(argv[i], args, &status)) != 0) {
                 fprintf(stderr,
                         "xmod: %s\n", strerror(err));
                 return err;
@@ -40,18 +40,10 @@ int handle_change_mods(cmd_args_t *args, char *argv[]) {
     return 0;
 }
 
-int change_perms(const char *pathname, cmd_args_t *args) {
-    int res, err;
-    struct stat status;
+int change_perms(const char *pathname, cmd_args_t *args, struct stat *status) {
+    int res;
 
-    if ((err = get_status(pathname, &status)) != 0) {
-        fprintf(stderr,
-                "xmod: cannot access '%s': No such file or directory\n",
-                pathname);
-        return err;
-    }
-
-    mode_t current_permission = get_access_perms(&status), new_permission = 0;
+    mode_t current_permission = get_access_perms(status), new_permission = 0;
 
     get_new_perms(pathname, &args->mode, current_permission, &new_permission);
 
