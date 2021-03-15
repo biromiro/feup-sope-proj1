@@ -25,7 +25,6 @@ int recursive_change_mod_inner(const char* pathname, uint16_t depth, cmd_args_t*
     DIR* directory = opendir(pathname);
 
     if (directory == NULL) {
-        closedir(directory);
         perror("ERROR WHILE OPENING DIRECTORY");
         return errno;
     }
@@ -43,7 +42,7 @@ int recursive_change_mod_inner(const char* pathname, uint16_t depth, cmd_args_t*
 
         snprintf(new_path, kPath_size, "%s/%s", pathname,
                  directory_entry->d_name);
-        //printf("%s\n", new_path);
+        // printf("%s\n", new_path);
         // printf("CUR DIR: %s length %d", newPath, directory_entry->d_reclen);
 
         if (get_status(new_path, &status)) {

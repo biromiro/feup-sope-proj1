@@ -1,8 +1,9 @@
 #ifndef INCLUDE_DIRS_H_
 #define INCLUDE_DIRS_H_
 
-#include "../include/args_parser.h"
 #include <stdint.h>
+
+#include "../include/args_parser.h"
 
 /**
  * @brief Changes the permissions of all files inside a directory, recursively
@@ -26,6 +27,7 @@ int recursive_change_mod(const char* pathname, cmd_args_t* args);
  *
  * @return an error value.
  **/
-int recursive_change_mod_inner(const char* pathname, uint16_t depth, cmd_args_t* args);
+int recursive_change_mod_inner(const char* pathname,
+                               uint16_t depth, cmd_args_t* args);
 
 #endif  // INCLUDE_DIRS_H_
