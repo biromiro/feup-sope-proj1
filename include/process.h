@@ -4,6 +4,9 @@
 #include <stdbool.h>
 #include <sys/types.h>
 
+/**
+ * Strcture containing valuable information about the process
+ */
 typedef struct process_info {
     char *curr_file;
     pid_t child_pid;

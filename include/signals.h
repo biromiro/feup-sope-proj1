@@ -30,6 +30,11 @@ void lock_wait_process();
  */
 void lock_process();
 
+/**
+ * @brief Registers to the log a signal received
+ * 
+ * @param signo Signal identifier
+ */
 int sig_log_register(int signo);
 
 #endif  // INCLUDE_SIGNALS_H_
