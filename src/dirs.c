@@ -12,6 +12,17 @@
 
 #include "../include/file_status.h"
 #include "../include/permission_caller.h"
+#include "../include/signals.h"
+
+/**
+ * @brief Changes the permissions of all files inside a directory, recursively
+ *opening directories inside it.
+ *
+ * @param[in] pathname string containing the pathname of the directory.
+ * @param depth depth of the recursion.
+ *
+ * @return an error value.
+ **/
 
 int recursive_change_mod(const char* pathname,
                          cmd_args_t* args,
@@ -62,6 +73,8 @@ int recursive_change_mod(const char* pathname,
         // printf(" is dir: %d access mode: %o\n", is_dir(&status),
         //       get_access_perms(&status));
 
+        lock_process();
+
         if (is_dir(&status)) {
             fflush(NULL);  // flush the output buffer so that printf doesn't
                            // print both on parent and on child process
@@ -79,8 +92,10 @@ int recursive_change_mod(const char* pathname,
                 if (args->files_end > args->files_start + 1)
                     argv[args->files_start + 1] = 0;
 
+                lock_process();
                 return execve("xmod", argv, envp);
             } else {
+                lock_wait_process();
             }
         } else {
             if (change_perms(new_path, args, &status) != 0) {
