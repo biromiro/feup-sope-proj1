@@ -9,6 +9,8 @@
 #include "../include/file_status.h"
 #include "../include/logger.h"
 #include "../include/permission_caller.h"
+#include "../include/process.h"
+#include "../include/signals.h"
 
 void cleanup(void) { close_log(); }
 
@@ -17,6 +19,14 @@ int main(int argc, char* argv[], char* envp[]) {
     // parse_args(&args, argc, argv, envp);
     // printf("Args obtained:\nR - %d\nv  - %d\nc  - %d\n", args.recursive,
     //        args.verbose, args.verbose_on_modify);
+
+    setup_pinfo();
+
+    if (setup_handlers()) {
+        fprintf(stderr, "Error setting up sig handlers");
+        exit(ERR_SIGNAL_SETUP);
+    }
+
     init_log_info();
     atexit(cleanup);
 
