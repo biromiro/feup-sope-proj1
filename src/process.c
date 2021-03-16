@@ -3,6 +3,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+#include <unistd.h>
 
 static pinfo_t pinfo;
 
@@ -15,9 +16,16 @@ void setup_pinfo() {
 }
 
 void update_file_pinfo(const char* path) {
-    printf("PINFO: %ld, '%s'\n", (unsigned long)pinfo.curr_file, pinfo.curr_file);
     pinfo.curr_file = (char*)realloc(pinfo.curr_file, strlen(path) + 1);
     snprintf(pinfo.curr_file, strlen(path) + 1, "%s", path);
+}
+
+void print_proc_info() {
+    printf("%d ; %s ; %d ; %d \n",
+           getpid(),
+           pinfo.curr_file,
+           pinfo.files_found,
+           pinfo.files_changed);
 }
 
 void update_pid_pinfo(pid_t pid) {
@@ -26,6 +34,7 @@ void update_pid_pinfo(pid_t pid) {
 
 void update_file_status_pinfo(bool changed) {
     pinfo.files_found++;
+    printf("pid: %d - PINFO: %d\n", getpid(), pinfo.files_found);
     if (changed) {
         pinfo.files_changed++;
     }
