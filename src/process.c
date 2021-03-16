@@ -34,7 +34,6 @@ void update_pid_pinfo(pid_t pid) {
 
 void update_file_status_pinfo(bool changed) {
     pinfo.files_found++;
-    printf("pid: %d - PINFO: %d\n", getpid(), pinfo.files_found);
     if (changed) {
         pinfo.files_changed++;
     }
