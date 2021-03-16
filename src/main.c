@@ -35,12 +35,7 @@ int main(int argc, char* argv[], char* envp[]) {
     err = open_log();
     switch (err) {
         case 0:
-            printf("i am logging\n");
-
-            break;
         case NO_FILE_GIVEN:
-            printf("no logging file given, logging disabled\n");
-
             break;
         default:
             return err;
@@ -52,15 +47,15 @@ int main(int argc, char* argv[], char* envp[]) {
 
     cmd_args_t args;
     parse_args(&args, argc, argv, envp);
-    printf("Args obtained:\nR - %d\nv  - %d\nc  - %d\n", args.options.recursive,
-           args.options.verbose, args.options.verbose_on_modify);
-    printf("%o, %d, %d, %d\n", args.mode.permission_octal,
-           args.mode.permission_types.type_u, args.mode.permission_types.type_g,
-           args.mode.permission_types.type_o);
+    // printf("Args obtained:\nR - %d\nv  - %d\nc  - %d\n", args.options.recursive,
+    //        args.options.verbose, args.options.verbose_on_modify);
+    // printf("%o, %d, %d, %d\n", args.mode.permission_octal,
+    //        args.mode.permission_types.type_u, args.mode.permission_types.type_g,
+    //        args.mode.permission_types.type_o);
 
-    printf("\nFiles: %lu %zu %zu\n", (args.files_end - args.files_start),
-           (args.files_start), (args.files_end));
-    handle_change_mods(&args, argv);
+    // printf("\nFiles: %lu %zu %zu\n", (args.files_end - args.files_start),
+    //        (args.files_start), (args.files_end));
+    handle_change_mods(&args, argv, envp);
 
     return 0;
 }
