@@ -38,11 +38,6 @@ int recursive_change_mod(const char* pathname,
         return errno;
     }
 
-    if (change_perms(pathname, args, &status) != 0) {
-        perror("ERROR WHILE CHANGING PERMISSION!");
-        return errno;
-    }
-
     DIR* directory = opendir(pathname);
 
     if (directory == NULL) {

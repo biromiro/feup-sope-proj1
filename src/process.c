@@ -15,7 +15,7 @@ void setup_pinfo() {
 }
 
 void update_file_pinfo(const char* path) {
-    printf("PINFO: %ld, '%s'\n", (unsigned long)pinfo.curr_file, pinfo.curr_file);
+    printf("PINFO: %ld, '%s'\n", (u_int64_t)pinfo.curr_file, pinfo.curr_file);
     pinfo.curr_file = (char*)realloc(pinfo.curr_file, strlen(path) + 1);
     snprintf(pinfo.curr_file, strlen(path) + 1, "%s", path);
 }

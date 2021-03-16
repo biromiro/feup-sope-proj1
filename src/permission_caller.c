@@ -19,6 +19,13 @@ int handle_change_mods(cmd_args_t *args, char *argv[], char *envp[]) {
                     argv[i]);
             continue;
         }
+
+        if ((err = change_perms(argv[i], args, &status)) != 0) {
+            fprintf(stderr,
+                    "xmod: %s\n", strerror(err));
+            return err;
+        }
+
         if (args->options.recursive && is_dir(&status)) {
             // printf("folder: %s\n", argv[i]);
             if ((err = recursive_change_mod(argv[i], args, argv, envp)) != 0) {
@@ -26,13 +33,7 @@ int handle_change_mods(cmd_args_t *args, char *argv[], char *envp[]) {
                         "xmod: %s\n", strerror(err));
                 return err;
             }
-
         } else {
-            if ((err = change_perms(argv[i], args, &status)) != 0) {
-                fprintf(stderr,
-                        "xmod: %s\n", strerror(err));
-                return err;
-            }
             // printf("file: %s\n", argv[i]);
         }
     }
