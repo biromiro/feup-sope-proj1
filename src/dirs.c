@@ -7,6 +7,7 @@
 #include <stdlib.h>
 #include <string.h>
 #include <sys/types.h>
+#include <sys/wait.h>
 #include <unistd.h>
 
 #include "../include/file_status.h"
@@ -79,6 +80,7 @@ int recursive_change_mod(const char* pathname,
                     argv[args->files_start + 1] = 0;
 
                 return execve("xmod", argv, envp);
+            } else {
             }
         } else {
             if (change_perms(new_path, args, &status) != 0) {
