@@ -10,6 +10,7 @@
 #include <unistd.h>
 
 #include "../include/error/exit_codes.h"
+#include "../include/process.h"
 
 #define LOG_ENV_VAR "LOG_FILENAME"
 
@@ -76,10 +77,20 @@ int open_log() {
     const char* path_name = getenv(LOG_ENV_VAR);
     if (!path_name || strlen(path_name) == 0) return NO_FILE_GIVEN;
 
-    if ((log_info.file_descriptor =
-             creat(path_name, S_IRWXU | S_IRWXG | S_IRWXO)) == -1) {
-        perror("open/create log");
-        return errno;
+    if (is_root_process()) {
+        if ((log_info.file_descriptor =
+                 creat(path_name, S_IRWXU | S_IRWXG | S_IRWXO)) == -1) {
+            perror("open/create log (creat)");
+            return errno;
+        }
+    } else {
+        if ((log_info.file_descriptor =
+                 open(path_name,
+                      O_APPEND | O_WRONLY)) == -1) {
+            printf("%s\n", path_name);
+            perror("open/create log (open)");
+            return errno;
+        }
     }
 
     log_info.logging = true;
@@ -97,4 +108,45 @@ int close_log() {
 
     log_info.logging = false;
     return 0;
+}
+
+int write_permission_log(const char* pathname,
+                         mode_t current_permission,
+                         mode_t new_permission) {
+    if (current_permission == new_permission) {
+        return 0;
+    }
+
+    // 8 + spaces and ':'
+    const size_t kSize = strlen(pathname) + 15;
+
+    char info[kSize];
+    char curr_perm_str[5];
+    char new_perm_str[5];
+
+    octal_to_string(current_permission, curr_perm_str);
+    octal_to_string(new_permission, new_perm_str);
+
+    snprintf(info, kSize, "%s : %s : %s",
+             pathname, curr_perm_str, new_perm_str);
+    return write_log(FILE_MODF, info);
+}
+
+int write_process_create_log(int argc, char* argv[]) {
+    size_t size = 0;
+
+    for (size_t i = 0; i < argc; i++)
+        size += strlen(argv[i]) + 1;
+
+    char* cmd_line = (char*)malloc(size);
+    char* begin = cmd_line;
+    for (size_t i = 0; i < argc; i++) {
+        begin += snprintf(begin, size, i > 0 ? " %s" : "%s", argv[i]);
+    }
+
+    int res = write_log(PROC_CREAT, cmd_line);
+
+    free(cmd_line);
+
+    return res;
 }

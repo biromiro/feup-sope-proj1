@@ -7,6 +7,7 @@
 
 #include "../include/dirs.h"
 #include "../include/file_status.h"
+#include "../include/logger.h"
 
 int handle_change_mods(cmd_args_t *args, char *argv[], char *envp[]) {
     struct stat status;
@@ -57,6 +58,7 @@ int change_perms(const char *pathname, cmd_args_t *args, struct stat *status) {
 
     print_chmod_call(current_permission, new_permission, pathname, args);
 
+    write_permission_log(pathname, current_permission, new_permission);
     return 0;
 }
 
@@ -149,17 +151,23 @@ void get_permission_string(mode_t permission, char *perm_string,
     char *permission_substrings[8] = {"---", "--x", "-w-", "-wx",
                                       "r--", "r-x", "rw-", "rwx"};
 
-    char permission_octal[4] = "";
+    char permission_octal[5] = "";
 
-    snprintf(permission_octal, sizeof(permission_octal), "%o", permission);
-    snprintf(permission_octal, sizeof(permission_octal), "%.*d%o",
-             (int)(sizeof(permission_octal) - strlen(permission_octal) - 1),
-             0, permission);
+    octal_to_string(permission, permission_octal);
 
-    size_t digit1 = permission_octal[0] - '0',
-           digit2 = permission_octal[1] - '0',
-           digit3 = permission_octal[2] - '0';
+    size_t digit1 = permission_octal[1] - '0',
+           digit2 = permission_octal[2] - '0',
+           digit3 = permission_octal[3] - '0';
 
     snprintf(perm_string, buffer_size, "%s%s%s", permission_substrings[digit1],
              permission_substrings[digit2], permission_substrings[digit3]);
+}
+
+void octal_to_string(mode_t octal, char *output) {
+    int size_string = 5;  // 4 digits + null terminator
+
+    snprintf(output, size_string, "%o", octal);
+    snprintf(output, size_string, "%.*d%o",
+             (int)(size_string - strlen(output) - 1),
+             0, octal);
 }
