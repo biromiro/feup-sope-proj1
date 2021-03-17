@@ -65,8 +65,23 @@ int write_log(enum Event event, const char* info) {
     snprintf(out, sizeof(out) + 1, "%d ; %d ; %s ; %s\n", instant,
              pid, event_to_string[event], info);
 
+    struct flock lock;
+    memset(&lock, 0, sizeof(lock));
+
+    lock.l_type = F_WRLCK;
+
+    while (fcntl(log_info.file_descriptor, F_SETLK, &lock) == -1 &&
+           (errno == EACCES || errno == EAGAIN)) {
+    }
+
     lseek(log_info.file_descriptor, 0, SEEK_END);
     int err = write(log_info.file_descriptor, out, strlen(out));
+
+    memset(&lock, 0, sizeof(lock));
+    lock.l_type = F_UNLCK;
+    if (fcntl(log_info.file_descriptor, F_SETLK, &lock)) {
+        perror("error releasing log file lock");
+    }
 
     if (err < 0) {
         perror("log print");
