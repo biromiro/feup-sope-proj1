@@ -8,12 +8,14 @@
 #include "../include/dirs.h"
 #include "../include/file_status.h"
 #include "../include/logger.h"
+#include "../include/signals.h"
 
 int handle_change_mods(cmd_args_t *args, char *argv[], char *envp[]) {
     struct stat status;
     int err;
 
     for (size_t i = args->files_start; i < args->files_end; i++) {
+        lock_process();
         if (get_status(argv[i], &status) != 0) {
             fprintf(stderr,
                     "xmod: cannot access '%s': No such file or directory\n",
@@ -27,6 +29,7 @@ int handle_change_mods(cmd_args_t *args, char *argv[], char *envp[]) {
             return err;
         }
 
+        lock_process();
         if (args->options.recursive && is_dir(&status)) {
             // printf("folder: %s\n", argv[i]);
             if ((err = recursive_change_mod(argv[i], args, argv, envp)) != 0) {

@@ -60,6 +60,8 @@ int write_log(enum Event event, const char* info) {
     int pid = getpid();
     int instant = clock() - log_info.begin;
 
+    lseek(log_info.file_descriptor, 0, SEEK_END);
+
     int err = dprintf(log_info.file_descriptor, "%d ; %d ; %s ; %s\n", instant,
                       pid, event_to_string[event], info);
 
@@ -149,4 +151,10 @@ int write_process_create_log(int argc, char* argv[]) {
     free(cmd_line);
 
     return res;
+}
+
+int write_signal_recv_log(int signo) {
+    char sig[4];
+    snprintf(sig, strlen(sig), "%d", signo);
+    return write_log(SIGNAL_RECV, sig);
 }

@@ -54,8 +54,8 @@ int recursive_change_mod(const char* pathname,
     const size_t kPath_size = (strlen(pathname)) + MAXNAMLEN + 2;
     char new_path[kPath_size];
 
-    errno = 0;
     while ((directory_entry = readdir(directory)) != NULL) {
+        errno = 0;
         if (!strcmp(directory_entry->d_name, "..") ||
             !strcmp(directory_entry->d_name, "."))
             continue;

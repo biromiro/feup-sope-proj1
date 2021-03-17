@@ -11,8 +11,10 @@
 #include <unistd.h>
 
 #include "../include/aux.h"
+#include "../include/logger.h"
 #include "../include/process.h"
 
+extern int errno;
 static bool waiting = false;
 static time_t last_recv;
 
@@ -52,8 +54,11 @@ void handle_sig_int() {
 /**
  * @brief Handler to be called when SIGINT is received
  */
-void sig_int_process() {
+void sig_int_process(int signo) {
     errno = 0;
+
+    write_signal_recv_log(signo);
+
     if (waiting) {
         // printf("Process killed\n");
         exit(1);
@@ -89,8 +94,9 @@ void sig_int_process() {
  * SIGCONT in the program context is received when the 
  *user wants to continue execution after SIGINT
  */
-void sig_cont_process() {
+void sig_cont_process(int signo) {
     errno = 0;
+    write_signal_recv_log(signo);
     if (waiting) {
         // printf("Continue process\n");
         waiting = false;
@@ -101,8 +107,9 @@ void sig_cont_process() {
  * @brief Handler to be called when children sends SIGUSR1
  * This signal indicates that a specific children printed its log after SIGINT
  */
-void sig_recv_children() {
+void sig_recv_children(int signo) {
     errno = 0;
+    write_signal_recv_log(signo);
     last_recv = time(NULL);
 }
 
