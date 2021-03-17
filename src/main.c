@@ -15,11 +15,6 @@
 void cleanup(void) { close_log(); }
 
 int main(int argc, char* argv[], char* envp[]) {
-    // cmd_args_t args;
-    // parse_args(&args, argc, argv, envp);
-    // printf("Args obtained:\nR - %d\nv  - %d\nc  - %d\n", args.recursive,
-    //        args.verbose, args.verbose_on_modify);
-
     setup_pinfo();
 
     if (setup_handlers()) {
@@ -40,6 +35,8 @@ int main(int argc, char* argv[], char* envp[]) {
         default:
             return err;
     }
+
+    write_process_create_log(argc, argv);
 
     // struct stat status;
     // get_status(argv[1], &status);

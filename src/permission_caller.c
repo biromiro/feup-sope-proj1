@@ -42,27 +42,6 @@ int handle_change_mods(cmd_args_t *args, char *argv[], char *envp[]) {
     return 0;
 }
 
-int write_permission_log(const char *pathname,
-                         mode_t current_permission,
-                         mode_t new_permission) {
-    if (current_permission == new_permission) {
-        return 0;
-    }
-
-    // 8 + spaces and ':'
-    const size_t kSize = strlen(pathname) + 15;
-
-    char info[kSize];
-    char curr_perm_str[5];
-    char new_perm_str[5];
-
-    octal_to_string(current_permission, curr_perm_str);
-    octal_to_string(new_permission, new_perm_str);
-
-    snprintf(info, kSize, "%s : %s : %s", pathname, curr_perm_str, new_perm_str);
-    return write_log(FILE_MODF, info);
-}
-
 int change_perms(const char *pathname, cmd_args_t *args, struct stat *status) {
     int res;
 
