@@ -70,4 +70,12 @@ int print_chmod_call(mode_t current_permission, mode_t new_permission, const cha
  */
 void get_permission_string(mode_t permission, char *perm_string, size_t buffer_size);
 
+/**
+ * @brief Converts an octal permission to a 4 digit string
+ * 
+ * @param[in] octal the octal permission
+ * @param[out] string the string to store the octal permission
+ */
+void octal_to_string(mode_t octal, char *string);
+
 #endif  // INCLUDE_PERMISSION_CALLER_H_

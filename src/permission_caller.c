@@ -149,17 +149,23 @@ void get_permission_string(mode_t permission, char *perm_string,
     char *permission_substrings[8] = {"---", "--x", "-w-", "-wx",
                                       "r--", "r-x", "rw-", "rwx"};
 
-    char permission_octal[4] = "";
+    char permission_octal[5] = "";
 
-    snprintf(permission_octal, sizeof(permission_octal), "%o", permission);
-    snprintf(permission_octal, sizeof(permission_octal), "%.*d%o",
-             (int)(sizeof(permission_octal) - strlen(permission_octal) - 1),
-             0, permission);
+    get_octal_to_string(permission, permission_octal);
 
-    size_t digit1 = permission_octal[0] - '0',
-           digit2 = permission_octal[1] - '0',
-           digit3 = permission_octal[2] - '0';
+    size_t digit1 = permission_octal[1] - '0',
+           digit2 = permission_octal[2] - '0',
+           digit3 = permission_octal[3] - '0';
 
     snprintf(perm_string, buffer_size, "%s%s%s", permission_substrings[digit1],
              permission_substrings[digit2], permission_substrings[digit3]);
+}
+
+void octal_to_string(mode_t octal, char *string) {
+    int size_string = 5;  // 4 digits + null terminator
+
+    snprintf(string, size_string, "%o", octal);
+    snprintf(string, size_string, "%.*d%o",
+             (int)(size_string - strlen(string) - 1),
+             0, octal);
 }
