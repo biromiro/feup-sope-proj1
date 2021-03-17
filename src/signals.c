@@ -78,14 +78,17 @@ void sig_int_process(int signo) {
         switch (toupper(c)) {
             case 'Y':
                 killpg(getpgrp(), SIGINT);
+                write_signal_send_group_log(getpgrp(), SIGINT);
                 exit(1);
                 break;
             default:
                 killpg(getpgrp(), SIGCONT);
+                write_signal_send_group_log(getpgrp(), SIGCONT);
                 break;
         }
     } else {
         kill(get_super_process(), SIGUSR1);
+        write_signal_send_process_log(get_super_process(), SIGUSR1);
     }
 }
 
