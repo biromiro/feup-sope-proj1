@@ -2,6 +2,7 @@
 #include <stdint.h>
 #include <stdio.h>
 #include <stdlib.h>
+#include <sys/wait.h>
 
 #include "../include/args_parser.h"
 #include "../include/dirs.h"
@@ -56,6 +57,10 @@ int main(int argc, char* argv[], char* envp[]) {
     // printf("\nFiles: %lu %zu %zu\n", (args.files_end - args.files_start),
     //        (args.files_start), (args.files_end));
     handle_change_mods(&args, argv, envp);
+
+    while(true) {
+        if(wait(NULL) == -1 && errno == ECHILD) break;
+    }
 
     return 0;
 }

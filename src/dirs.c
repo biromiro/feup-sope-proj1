@@ -89,8 +89,6 @@ int recursive_change_mod(const char* pathname,
 
                 lock_process();
                 return execve("xmod", argv, envp);
-            } else {
-                lock_wait_process();
             }
         } else {
             if (change_perms(new_path, args, &status) != 0) {
