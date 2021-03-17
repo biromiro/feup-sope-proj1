@@ -155,6 +155,6 @@ int write_process_create_log(int argc, char* argv[]) {
 
 int write_signal_recv_log(int signo) {
     char sig[4];
-    snprintf(sig, strlen(sig), "%d", signo);
+    snprintf(sig, sizeof(sig) - 1, "%d", signo);
     return write_log(SIGNAL_RECV, sig);
 }
