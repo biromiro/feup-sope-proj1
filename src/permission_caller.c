@@ -7,6 +7,7 @@
 
 #include "../include/dirs.h"
 #include "../include/file_status.h"
+#include "../include/logger.h"
 
 int handle_change_mods(cmd_args_t *args, char *argv[], char *envp[]) {
     struct stat status;
@@ -41,6 +42,27 @@ int handle_change_mods(cmd_args_t *args, char *argv[], char *envp[]) {
     return 0;
 }
 
+int write_permission_log(const char *pathname,
+                         mode_t current_permission,
+                         mode_t new_permission) {
+    if (current_permission == new_permission) {
+        return 0;
+    }
+
+    // 8 + spaces and ':'
+    const size_t kSize = strlen(pathname) + 15;
+
+    char info[kSize];
+    char curr_perm_str[5];
+    char new_perm_str[5];
+
+    octal_to_string(current_permission, curr_perm_str);
+    octal_to_string(new_permission, new_perm_str);
+
+    snprintf(info, kSize, "%s : %s : %s", pathname, curr_perm_str, new_perm_str);
+    return write_log(FILE_MODF, info);
+}
+
 int change_perms(const char *pathname, cmd_args_t *args, struct stat *status) {
     int res;
 
@@ -57,6 +79,7 @@ int change_perms(const char *pathname, cmd_args_t *args, struct stat *status) {
 
     print_chmod_call(current_permission, new_permission, pathname, args);
 
+    write_permission_log(pathname, current_permission, new_permission);
     return 0;
 }
 
@@ -151,7 +174,7 @@ void get_permission_string(mode_t permission, char *perm_string,
 
     char permission_octal[5] = "";
 
-    get_octal_to_string(permission, permission_octal);
+    octal_to_string(permission, permission_octal);
 
     size_t digit1 = permission_octal[1] - '0',
            digit2 = permission_octal[2] - '0',
@@ -161,11 +184,11 @@ void get_permission_string(mode_t permission, char *perm_string,
              permission_substrings[digit2], permission_substrings[digit3]);
 }
 
-void octal_to_string(mode_t octal, char *string) {
+void octal_to_string(mode_t octal, char *output) {
     int size_string = 5;  // 4 digits + null terminator
 
-    snprintf(string, size_string, "%o", octal);
-    snprintf(string, size_string, "%.*d%o",
-             (int)(size_string - strlen(string) - 1),
+    snprintf(output, size_string, "%o", octal);
+    snprintf(output, size_string, "%.*d%o",
+             (int)(size_string - strlen(output) - 1),
              0, octal);
 }
