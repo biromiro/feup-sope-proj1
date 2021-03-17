@@ -12,6 +12,7 @@
 
 #include "../include/file_status.h"
 #include "../include/permission_caller.h"
+#include "../include/process.h"
 #include "../include/signals.h"
 
 /**
@@ -69,6 +70,8 @@ int recursive_change_mod(const char* pathname,
         //       get_access_perms(&status));
 
         lock_process();
+
+        update_file_pinfo(new_path);
 
         if (is_dir(&status)) {
             fflush(NULL);  // flush the output buffer so that printf doesn't

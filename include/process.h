@@ -20,6 +20,11 @@ typedef struct process_info {
 void setup_pinfo();
 
 /**
+ * @brief Prints usefull information about the current process
+ */
+void print_proc_info();
+
+/**
  * @brief Updates process info
  * 
  * @param path file/folder currently being analysed. Send NULL for unchanged
