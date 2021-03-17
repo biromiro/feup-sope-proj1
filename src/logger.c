@@ -10,6 +10,7 @@
 #include <unistd.h>
 
 #include "../include/error/exit_codes.h"
+#include "../include/process.h"
 
 #define LOG_ENV_VAR "LOG_FILENAME"
 
@@ -76,10 +77,20 @@ int open_log() {
     const char* path_name = getenv(LOG_ENV_VAR);
     if (!path_name || strlen(path_name) == 0) return NO_FILE_GIVEN;
 
-    if ((log_info.file_descriptor =
-             creat(path_name, S_IRWXU | S_IRWXG | S_IRWXO)) == -1) {
-        perror("open/create log");
-        return errno;
+    if (is_root_process()) {
+        if ((log_info.file_descriptor =
+                 creat(path_name, S_IRWXU | S_IRWXG | S_IRWXO)) == -1) {
+            perror("open/create log (creat)");
+            return errno;
+        }
+    } else {
+        if ((log_info.file_descriptor =
+                 open(path_name,
+                      O_APPEND | O_WRONLY)) == -1) {
+            printf("%s\n", path_name);
+            perror("open/create log (open)");
+            return errno;
+        }
     }
 
     log_info.logging = true;

@@ -3,6 +3,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+#include <unistd.h>
 
 static pinfo_t pinfo;
 
@@ -33,4 +34,12 @@ void update_file_status_pinfo(bool changed) {
 
 pinfo_t* get_pinfo() {
     return &pinfo;
+}
+
+int get_super_process() {
+    return getpgrp();
+}
+
+bool is_root_process() {
+    return getpid() == get_super_process();
 }

@@ -36,24 +36,6 @@ void lock_process() {
 }
 
 /**
- * @brief First process - the "oldest" parent
- * 
- * @return first process of the chain
- */
-int get_super_process() {
-    return getpgrp();
-}
-
-/**
- * Is the root process
- * 
- * @return true if root process
- */
-bool is_root_process() {
-    return getpid() == get_super_process();
-}
-
-/**
  * @brief Waits for children to print their info about the process after SIGKILL
  */
 void wait_for_children() {
