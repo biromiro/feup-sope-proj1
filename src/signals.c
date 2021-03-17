@@ -12,21 +12,18 @@
 
 #include "../include/aux.h"
 #include "../include/process.h"
+#include "../include/logger.h"
 
 static bool waiting = false;
 static time_t last_recv;
 
-bool is_waiting() {
-    return waiting;
-}
+bool is_waiting() { return waiting; }
 
 void lock_wait_process() {
     int wstat;
     while (1) {
-        if (waiting)
-            continue;
-        if (wait(&wstat) > 0)
-            break;
+        if (waiting) continue;
+        if (wait(&wstat) > 0) break;
     }
 }
 
@@ -46,8 +43,7 @@ void wait_for_children() {
 /**
  * @brief Function that handles input when SIGINT received
  */
-void handle_sig_int() {
-}
+void handle_sig_int() {}
 
 /**
  * @brief Handler to be called when SIGINT is received
@@ -60,7 +56,7 @@ void sig_int_process() {
     }
     waiting = true;
 
-    pinfo_t *info = get_pinfo();
+    pinfo_t* info = get_pinfo();
 
     printf("%d ; %s ; %d ; %d \n", getpid(), info->curr_file, 5, 4);
     if (is_root_process()) {
@@ -86,7 +82,7 @@ void sig_int_process() {
 
 /**
  * @brief Handler to be called when SIGCONT is received
- * SIGCONT in the program context is received when the 
+ * SIGCONT in the program context is received when the
  *user wants to continue execution after SIGINT
  */
 void sig_cont_process() {
@@ -104,6 +100,19 @@ void sig_cont_process() {
 void sig_recv_children() {
     errno = 0;
     last_recv = time(NULL);
+}
+
+void sig_chld() {
+    int w_status;
+    pid_t pid;
+    pid = wait(&w_status);
+    char out[255];
+    printf("exit here pid %d\n", pid);
+
+    if (pid > 0) {
+        snprintf(out, sizeof(out), "%d", WEXITSTATUS(w_status));
+        write_log(PROC_EXIT, out);
+    }
 }
 
 int setup_handlers() {
@@ -138,15 +147,19 @@ int setup_handlers() {
         return ERR_SIGACTION;
     }
 
-    if (sigemptyset(&smask) == -1)
-        perror("mask");
+    if (sigemptyset(&smask) == -1) perror("mask");
 
     new.sa_handler = sig_recv_children;
     new.sa_mask = smask;
     new.sa_flags = 0;
 
-    if (sigaction(SIGUSR1, &new, &old) == -1)
-        perror("sigaction");
+    if (sigaction(SIGUSR1, &new, &old) == -1) perror("sigaction");
+
+    new.sa_handler = sig_chld;
+    new.sa_mask = smask;
+    new.sa_flags = 0;
+
+    if (sigaction(SIGCHLD, &new, &old) == -1) perror("sigaction");
 
     return 0;
 }

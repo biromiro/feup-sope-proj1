@@ -13,7 +13,9 @@
 #include "../include/process.h"
 #include "../include/signals.h"
 
-void cleanup(void) { close_log(); }
+void cleanup(void) { 
+    close_log(); 
+}
 
 int main(int argc, char* argv[], char* envp[]) {
     setup_pinfo();
@@ -54,9 +56,20 @@ int main(int argc, char* argv[], char* envp[]) {
     // printf("\nFiles: %lu %zu %zu\n", (args.files_end - args.files_start),
     //        (args.files_start), (args.files_end));
     handle_change_mods(&args, argv, envp);
+    char out[255];
+        int w_status;
+        pid_t pid;
 
     while(true) {
-        if(wait(NULL) == -1 && errno == ECHILD) break;
+        
+
+        if((pid = wait(&w_status)) == -1 && errno == ECHILD) break;
+        printf("exit here pid %d\n", pid);
+        if(pid == -1) continue;
+
+        
+        snprintf(out, sizeof(out), "%d", WEXITSTATUS(w_status));
+        write_log(PROC_EXIT, out);
     }
 
     return 0;
