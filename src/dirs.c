@@ -13,6 +13,8 @@
 #include "../include/file_status.h"
 #include "../include/permission_caller.h"
 #include "../include/signals.h"
+#include "../include/logger.h"
+#include "../include/process.h"
 
 void setup_argv(cmd_args_t* args, char* argv[], char* new_path) {
     argv[args->files_start] = new_path;
@@ -53,9 +55,10 @@ int recursive_change_mod(const char* pathname,
     struct dirent* directory_entry;
     const size_t kPath_size = (strlen(pathname)) + MAXNAMLEN + 2;
     char new_path[kPath_size];
-
+    lock_process();
     while ((directory_entry = readdir(directory)) != NULL) {
         errno = 0;
+
         if (!strcmp(directory_entry->d_name, "..") ||
             !strcmp(directory_entry->d_name, "."))
             continue;
@@ -73,11 +76,12 @@ int recursive_change_mod(const char* pathname,
         // printf(" is dir: %d access mode: %o\n", is_dir(&status),
         //       get_access_perms(&status));
 
-        lock_process();
+        //lock_process();
 
         if (is_dir(&status)) {
             fflush(NULL);  // flush the output buffer so that printf doesn't
                            // print both on parent and on child process
+            lock_process();
             int id = fork();
             if (id == -1) {
                 closedir(directory);
@@ -89,18 +93,37 @@ int recursive_change_mod(const char* pathname,
                 closedir(directory);
 
                 setup_argv(args, argv, new_path);
-
                 lock_process();
-
                 return execve("xmod", argv, envp);
+            } else {
+                update_pid_pinfo(id);
+                pid_t pid;
+                int w_status;
+                char out[255];
+
+                if((pid = wait(&w_status)) == -1 && errno == ECHILD) break;
+                if(pid == -1) continue;
+
+                
+                if(WIFSIGNALED(w_status) && WTERMSIG(w_status) != SIGINT) {
+                    snprintf(out, sizeof(out), "%d", -WTERMSIG(w_status));
+                    write_log(PROC_EXIT, out);
+                } else if(!WIFSIGNALED(w_status)) {
+                    snprintf(out, sizeof(out), "%d", WEXITSTATUS(w_status));
+                    write_log(PROC_EXIT, out);
+                }
+                fflush(NULL);
             }
         } else {
+            lock_process();
             if (change_perms(new_path, args, &status) != 0) {
                 closedir(directory);
                 perror("ERROR WHILE CHANGING PERMISSION!");
                 return errno;
             }
         }
+
+        
     }
 
     if (errno != 0) {
@@ -113,6 +136,8 @@ int recursive_change_mod(const char* pathname,
         perror("ERROR WHILE CLOSING DIR");
         return errno;
     }
+
+    lock_process();
 
     // printf("LEAVING %s----------\n", pathname);
 

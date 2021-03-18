@@ -58,7 +58,7 @@ int write_log_format(const char* format, ...) {
 int write_log(enum Event event, const char* info) {
     if (!log_info.logging) return 0;
 
-    int pid = getpid();
+    int pid = event == PROC_EXIT ? get_pinfo()->child_pid : getpid();
     int instant = clock() - log_info.begin;
 
     char out[128];
@@ -158,7 +158,7 @@ int write_process_create_log(int argc, char* argv[]) {
     for (size_t i = 0; i < argc; i++)
         size += strlen(argv[i]) + 1;
 
-    char* cmd_line = (char*)malloc(size);
+    char* cmd_line = malloc(size);
     char* begin = cmd_line;
     for (size_t i = 0; i < argc; i++) {
         begin += snprintf(begin, size, i > 0 ? " %s" : "%s", argv[i]);

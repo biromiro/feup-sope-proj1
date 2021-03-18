@@ -56,7 +56,11 @@ void sig_int_process(int signo) {
     write_signal_recv_log(signo);
 
     if (waiting) {
-        // printf("Process killed\n");
+        char out[255];
+        snprintf(out, sizeof(out), "%d", -SIGINT);
+        update_pid_pinfo(getpid());
+        write_log(PROC_EXIT, out);
+        fflush(NULL);
         exit(1);
     }
     waiting = true;
@@ -68,8 +72,8 @@ void sig_int_process(int signo) {
         last_recv = time(NULL);
 
         wait_for_children();
-
-        printf("Do you want to exit? (y/Y or other to continue)\n");
+    
+        dprintf(STDERR_FILENO,"Do you want to exit? (y/Y or other to continue)\n");
         char c = get_clean_char();
         switch (toupper(c)) {
             case 'Y':
@@ -117,11 +121,16 @@ void sig_chld() {
     pid_t pid;
     pid = wait(&w_status);
     char out[255];
-    printf("exit here pid %d\n", pid);
 
     if (pid > 0) {
-        snprintf(out, sizeof(out), "%d", WEXITSTATUS(w_status));
-        write_log(PROC_EXIT, out);
+        if(WIFSIGNALED(w_status) && WTERMSIG(w_status) != SIGINT) {
+            snprintf(out, sizeof(out), "%d", -WTERMSIG(w_status));
+            write_log(PROC_EXIT, out);
+        } else if (!WIFSIGNALED(w_status)){
+            snprintf(out, sizeof(out), "%d", WEXITSTATUS(w_status));
+            write_log(PROC_EXIT, out);
+        }
+        fflush(NULL);
     }
 }
 
