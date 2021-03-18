@@ -10,6 +10,7 @@ static pinfo_t pinfo;
 void setup_pinfo() {
     pinfo.curr_file = (char*)malloc(2);
     pinfo.curr_file = NULL;
+    update_file_pinfo("(NO FILE YET)");
     pinfo.child_pid = -1;
     pinfo.files_found = 0;
     pinfo.files_changed = 0;

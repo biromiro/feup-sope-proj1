@@ -16,6 +16,7 @@ int handle_change_mods(cmd_args_t *args, char *argv[], char *envp[]) {
     int err;
 
     for (size_t i = args->files_start; i < args->files_end; i++) {
+        update_file_pinfo(argv[i]);
         lock_process();
         if (get_status(argv[i], &status) != 0) {
             fprintf(stderr,
