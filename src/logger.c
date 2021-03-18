@@ -50,6 +50,7 @@ void setup_envp(clock_ms_t start_time) {
     char* env_alloc_buf = malloc(strlen(env_buf) + 1);
     snprintf(env_alloc_buf, strlen(env_buf) + 1, "%s", env_buf);
     putenv(env_alloc_buf);
+    free(env_alloc_buf);
 }
 
 void init_log_info() {

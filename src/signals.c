@@ -14,7 +14,6 @@
 #include "../include/logger.h"
 #include "../include/process.h"
 
-extern int errno;
 static bool waiting = false;
 static time_t last_recv;
 
