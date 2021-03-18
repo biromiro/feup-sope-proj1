@@ -43,14 +43,9 @@ void read_curr_time_ms(clock_ms_t* clock_val) {
  */
 void setup_envp(clock_ms_t start_time) {
     char env_buf[128];
-    snprintf(env_buf, sizeof(env_buf),
-             "PROC_START_TIME_MS=%lu", start_time);
 
-    // Allocating just the necessary ammount
-    char* env_alloc_buf = malloc(strlen(env_buf) + 1);
-    snprintf(env_alloc_buf, strlen(env_buf) + 1, "%s", env_buf);
-    putenv(env_alloc_buf);
-    free(env_alloc_buf);
+    snprintf(env_buf, sizeof(env_buf), "%lu", start_time);
+    setenv("PROC_START_TIME_MS", env_buf, 1);
 }
 
 void init_log_info() {

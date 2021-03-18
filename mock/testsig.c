@@ -179,7 +179,7 @@ int int_to_string(int num, char * string, int buffer_size) {
 int main(int argc, char *argv[], char *envp[]) {
     char out[255] = "";
 
-    int size = int_to_string(212334, out, 255);
+    int size = int_to_string(2, out, 255);
 
     printf("%s\n", out);
     int pipes[2];

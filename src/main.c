@@ -12,7 +12,10 @@
 #include "../include/process.h"
 #include "../include/signals.h"
 
-void cleanup(void) { close_log(); }
+void cleanup(void) { 
+    close_log(); 
+    unsetup_handlers();
+}
 
 int main(int argc, char* argv[], char* envp[]) {
     setup_pinfo();

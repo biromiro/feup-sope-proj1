@@ -43,7 +43,7 @@ void catch_int(int signo) {
     char out[4];
     int size = int_to_string(signo, out, sizeof(out));
 
-    write(pipes[1], out, size);
+    write(pipes[1], out, size + 1);
 }
 
 void catch_usr1(int signo) {
@@ -71,7 +71,7 @@ void handle_sig_int(int signo) {
 
         wait_for_children();
 
-        printf("Do you want to exit? (y/Y to exit or other to continue)\n");
+        dprintf(STDERR_FILENO, "Do you want to exit? (y/Y to exit or other to continue)\n");
         char c = get_clean_char();
         switch (toupper(c)) {
             case 'Y':
@@ -80,9 +80,9 @@ void handle_sig_int(int signo) {
                 exit(1);
                 break;
             default:
+                waiting = false;
                 killpg(getpgrp(), SIGCONT);
                 write_signal_send_group_log(getpgrp(), SIGCONT);
-                waiting = false;
                 break;
         }
     } else {
@@ -168,6 +168,11 @@ int setup_handlers() {
     return setup_log_signals();
 }
 
+void unsetup_handlers() {
+    close(pipes[0]);
+    close(pipes[1]);
+}
+
 void lock_process() {
     char out[4];
     char* cur;
@@ -198,7 +203,8 @@ void lock_process() {
             if (*cur == 0) break;
             cur++;
         }
-        if(blocked) continue;
+
+        if (cur == out) continue;
 
         signo = atoi(out);
 
