@@ -58,7 +58,10 @@ int try_enter_dir(DIR* directory, cmd_args_t* args, char* argv[], char* envp[],
         fflush(NULL);                    // ensure it prints before it dies
 
         lock_process();
-        return execve("xmod", argv, envp);
+        if (execve("xmod", argv, envp)) {
+            perror("exec");
+            return errno;
+        }
     } else {
         update_pid_pinfo(id);
         pid_t pid;
@@ -72,9 +75,10 @@ int try_enter_dir(DIR* directory, cmd_args_t* args, char* argv[], char* envp[],
         // while the result of wait isn't interrupted by a system
         // call
 
-        if (pid > 0) {  // if there was child not caught by sigchld
+        if (pid > 0) {
             if (WIFSIGNALED(w_status)) {
-                snprintf(out, sizeof(out), "%d", -WTERMSIG(w_status));
+                snprintf(out, sizeof(out), "%d (interrupted)",
+                         -WTERMSIG(w_status));
                 write_log(PROC_EXIT, out);
 
                 return UNJUST_CHILD_DEATH;  // meaning child was killed before
