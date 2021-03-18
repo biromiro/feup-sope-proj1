@@ -35,6 +35,7 @@ int main(int argc, char* argv[], char* envp[]) {
         default:
             return err;
     }
+    lock_process();
 
     write_process_create_log(argc, argv);
 
@@ -54,5 +55,6 @@ int main(int argc, char* argv[], char* envp[]) {
     //        (args.files_start), (args.files_end));
     handle_change_mods(&args, argv, envp);
 
+    lock_process();
     return 0;
 }

@@ -5,10 +5,13 @@
 #include <signal.h>
 #include <stdio.h>
 #include <stdlib.h>
+#include <asm-generic/errno-base.h>
+#include <asm-generic/errno.h>
 #include <sys/types.h>
 #include <sys/wait.h>
 #include <time.h>
 #include <unistd.h>
+#include <fcntl.h>
 
 #include "../include/aux.h"
 #include "../include/logger.h"
@@ -16,23 +19,15 @@
 
 static bool waiting = false;
 static time_t last_recv;
+static int pipes[2];
 
-bool is_waiting() {
-    return waiting;
-}
+bool is_waiting() { return waiting; }
 
 void lock_wait_process() {
     int wstat;
     while (1) {
-        if (waiting)
-            continue;
-        if (wait(&wstat) > 0)
-            break;
-    }
-}
-
-void lock_process() {
-    while (waiting) {
+        lock_process();
+        if (wait(&wstat) > 0) break;
     }
 }
 
@@ -40,20 +35,27 @@ void lock_process() {
  * @brief Waits for children to print their info about the process after SIGKILL
  */
 void wait_for_children() {
-    while (time(NULL) <= last_recv) {
-    }
+    while (time(NULL) <= last_recv)
+        ;
 }
 
-/**
- * @brief Function that handles input when SIGINT received
- */
-void handle_sig_int() {
+void catch_int(int signo) {
+    char out[4];
+    int size = int_to_string(signo, out, sizeof(out));
+
+    write(pipes[1], out, size);
+}
+
+void catch_usr1(int signo) {
+    last_recv = time(NULL);
+
+    catch_int(signo);
 }
 
 /**
  * @brief Handler to be called when SIGINT is received
  */
-void sig_int_process(int signo) {
+void handle_sig_int(int signo) {
     errno = 0;
 
     write_signal_recv_log(signo);
@@ -80,12 +82,36 @@ void sig_int_process(int signo) {
             default:
                 killpg(getpgrp(), SIGCONT);
                 write_signal_send_group_log(getpgrp(), SIGCONT);
+                waiting = false;
                 break;
         }
     } else {
         kill(get_super_process(), SIGUSR1);
         write_signal_send_process_log(get_super_process(), SIGUSR1);
     }
+}
+
+/**
+ * @brief Handler to be called when SIGCONT is received
+ * SIGCONT in the program context is received when the
+ *user wants to continue execution after SIGINT
+ */
+void handle_sig_cont(int signo) {
+    errno = 0;
+    write_signal_recv_log(signo);
+    if (waiting) {
+        // printf("Continue process\n");
+        waiting = false;
+    }
+}
+
+/**
+ * @brief Handler to be called when children sends SIGUSR1
+ * This signal indicates that a specific children printed its log after SIGINT
+ */
+void handle_sig_usr1(int signo) {
+    errno = 0;
+    write_signal_recv_log(signo);
 }
 
 void log_handler(int signo) {
@@ -107,7 +133,7 @@ int setup_log_signals() {
                 return errno;
             }
 
-            new.sa_handler = log_handler;
+            new.sa_handler = catch_int;
             new.sa_mask = smask;
             new.sa_flags = 0;
             if (sigaction(i, &new, &old) == -1) {
@@ -120,75 +146,77 @@ int setup_log_signals() {
     return 0;
 }
 
-/**
- * @brief Handler to be called when SIGCONT is received
- * SIGCONT in the program context is received when the 
- *user wants to continue execution after SIGINT
- */
-void sig_cont_process(int signo) {
-    errno = 0;
-    write_signal_recv_log(signo);
-    if (waiting) {
-        // printf("Continue process\n");
-        waiting = false;
-    }
-}
-
-/**
- * @brief Handler to be called when children sends SIGUSR1
- * This signal indicates that a specific children printed its log after SIGINT
- */
-void sig_recv_children(int signo) {
-    errno = 0;
-    write_signal_recv_log(signo);
-    last_recv = time(NULL);
-}
-
 int setup_handlers() {
-    struct sigaction new = {0}, old= {0};
+    pipe(pipes);
+    fcntl(pipes[0], F_SETFL, O_NONBLOCK);
+    struct sigaction new = {0}, old = {0};
     sigset_t smask;
 
     if (sigemptyset(&smask) == -1) {
         perror("mask");
-        return ERR_SIGEMPTYMASK;
+        return errno;
     }
 
-    new.sa_handler = sig_int_process;
+    new.sa_handler = catch_usr1;
     new.sa_mask = smask;
     new.sa_flags = 0;
-
-    if (sigaction(SIGINT, &new, &old) == -1) {
-        perror("sigaction");
-        return ERR_SIGACTION;
-    }
-
-    if (sigemptyset(&smask) == -1) {
-        perror("mask");
-        return ERR_SIGEMPTYMASK;
-    }
-
-    new.sa_handler = sig_cont_process;
-    new.sa_mask = smask;
-    new.sa_flags = 0;
-
-    if (sigaction(SIGCONT, &new, &old) == -1) {
-        perror("sigaction");
-        return ERR_SIGACTION;
-    }
-
-    if (sigemptyset(&smask) == -1) {
-        perror("mask");
-        return ERR_SIGEMPTYMASK;
-    }
-
-    new.sa_handler = sig_recv_children;
-    new.sa_mask = smask;
-    new.sa_flags = 0;
-
     if (sigaction(SIGUSR1, &new, &old) == -1) {
-        perror("sigaction");
-        return ERR_SIGACTION;
+        perror("sigaction usr1");
+        return errno;
     }
 
     return setup_log_signals();
+}
+
+void lock_process() {
+    char out[4];
+    char* cur;
+    int err, signo;
+    bool blocked = false;
+
+    while (!blocked || waiting) {
+        cur = out;
+        err = 0;
+        signo = 0;
+
+        while (cur < out + sizeof(out)) {
+            errno = 0;
+            err = read(pipes[0], cur, 1);
+
+            if (err == -1) {
+                if (errno == EINTR) continue;
+
+                if (errno == EWOULDBLOCK) {
+                    blocked = true;
+                    break;
+                } else {
+                    perror("read pipe");
+                }
+                return;
+            }
+
+            if (*cur == 0) break;
+            cur++;
+        }
+        if(blocked) continue;
+
+        signo = atoi(out);
+
+        switch (signo) {
+            case SIGINT:
+                handle_sig_int(signo);
+                break;
+            case SIGCONT:
+                handle_sig_cont(signo);
+                break;
+            case SIGUSR1:
+                handle_sig_usr1(signo);
+                break;
+            default:
+                log_handler(signo);
+                break;
+        }
+    }
+
+    errno = 0;
 }

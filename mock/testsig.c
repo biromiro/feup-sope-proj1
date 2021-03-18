@@ -16,6 +16,7 @@
 #include <sys/types.h>
 #include <sys/wait.h>
 #include <time.h>
+#include <errno.h>
 #include <unistd.h>
 
 // preparation for execve:
@@ -148,8 +149,73 @@ void setup_handler() {
         perror("sigaction");
 }
 
+int int_to_string(int num, char * string, int buffer_size) {
+    int cur = 0;
+
+    int aux = num;
+
+    while(aux > 0) {
+        cur++;
+        aux/= 10;
+    }
+
+    if(cur >= buffer_size) cur = buffer_size - 1;
+    string[cur] = '\0';
+    int size = cur;
+    cur--;
+
+    while(num > 0 && cur >= 0) {
+        string[cur] = num % 10 + '0'; 
+        num /= 10;
+
+        cur--;
+    }
+
+    string[cur] = '\0';
+    return size;
+}
+
+
 int main(int argc, char *argv[], char *envp[]) {
+    char out[255] = "";
+
+    int size = int_to_string(212334, out, 255);
+
+    printf("%s\n", out);
+    int pipes[2];
+
+    pipe(pipes);
+    fcntl(pipes[0], F_SETFL, O_NONBLOCK);
+    printf("%d size\n",size);
+
+    write(pipes[1], out, size + 1);
+    char get[255];
+    char* cur = get;
+    int err = 0, signo = 0;
+
+    while (true) {
+        err = read(pipes[0], cur, 1);
+
+        if (err == -1) {
+            if (errno == EINTR) continue;
+
+            perror("read pipe");
+            return 1;
+        }
+
+        if (*cur == 0) break;
+        cur++;
+    }
+
+    signo = atoi(out);
+
+    printf("%d-\n",signo);
+
+    err = read(pipes[0], cur, 1);
+
+    return 0;
     setup_handler();
+
 
     setbuf(stdout, NULL);  // to make sure printf() have no buffer so, nodelay!
 
