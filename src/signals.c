@@ -13,7 +13,6 @@
 #include "../include/aux.h"
 #include "../include/logger.h"
 #include "../include/process.h"
-#include "../include/logger.h"
 
 extern int errno;
 static bool waiting = false;
@@ -51,8 +50,6 @@ void handle_sig_int() {}
  * @brief Handler to be called when SIGINT is received
  */
 void sig_int_process(int signo) {
-    errno = 0;
-
     write_signal_recv_log(signo);
 
     if (waiting) {
@@ -60,7 +57,6 @@ void sig_int_process(int signo) {
         snprintf(out, sizeof(out), "%d", -SIGINT);
         update_pid_pinfo(getpid());
         write_log(PROC_EXIT, out);
-        fflush(NULL);
         exit(1);
     }
     waiting = true;
@@ -72,8 +68,9 @@ void sig_int_process(int signo) {
         last_recv = time(NULL);
 
         wait_for_children();
-    
-        dprintf(STDERR_FILENO,"Do you want to exit? (y/Y or other to continue)\n");
+
+        dprintf(STDERR_FILENO,
+                "Do you want to exit? (y/Y or other to continue)\n");
         char c = get_clean_char();
         switch (toupper(c)) {
             case 'Y':
@@ -90,6 +87,8 @@ void sig_int_process(int signo) {
         kill(get_super_process(), SIGUSR1);
         write_signal_send_process_log(get_super_process(), SIGUSR1);
     }
+
+    errno = 0;
 }
 
 /**
@@ -98,12 +97,13 @@ void sig_int_process(int signo) {
  *user wants to continue execution after SIGINT
  */
 void sig_cont_process(int signo) {
-    errno = 0;
     write_signal_recv_log(signo);
     if (waiting) {
         // printf("Continue process\n");
         waiting = false;
     }
+
+    errno = 0;
 }
 
 /**
@@ -123,10 +123,10 @@ void sig_chld() {
     char out[255];
 
     if (pid > 0) {
-        if(WIFSIGNALED(w_status) && WTERMSIG(w_status) != SIGINT) {
+        if (WIFSIGNALED(w_status) && WTERMSIG(w_status) != SIGINT) {
             snprintf(out, sizeof(out), "%d", -WTERMSIG(w_status));
             write_log(PROC_EXIT, out);
-        } else if (!WIFSIGNALED(w_status)){
+        } else if (!WIFSIGNALED(w_status)) {
             snprintf(out, sizeof(out), "%d", WEXITSTATUS(w_status));
             write_log(PROC_EXIT, out);
         }

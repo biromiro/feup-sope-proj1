@@ -62,8 +62,8 @@ int write_log(enum Event event, const char* info) {
     int instant = clock() - log_info.begin;
 
     char out[128];
-    snprintf(out, sizeof(out) + 1, "%d ; %d ; %s ; %s\n", instant,
-             pid, event_to_string[event], info);
+    snprintf(out, sizeof(out), "%d ; %d ; %s ; %s\n", instant, pid,
+             event_to_string[event], info);
 
     struct flock lock;
     memset(&lock, 0, sizeof(lock));
@@ -75,7 +75,9 @@ int write_log(enum Event event, const char* info) {
     }
 
     lseek(log_info.file_descriptor, 0, SEEK_END);
-    int err = write(log_info.file_descriptor, out, strlen(out));
+    int err;
+    while ((err = write(log_info.file_descriptor, out, strlen(out))) == -1 &&
+           errno == EINTR);  // if interrupted by sig handler try again.
 
     memset(&lock, 0, sizeof(lock));
     lock.l_type = F_UNLCK;
@@ -104,9 +106,8 @@ int open_log() {
             return errno;
         }
     } else {
-        if ((log_info.file_descriptor =
-                 open(path_name,
-                      O_APPEND | O_WRONLY)) == -1) {
+        if ((log_info.file_descriptor = open(path_name, O_APPEND | O_WRONLY)) ==
+            -1) {
             printf("%s\n", path_name);
             perror("open/create log (open)");
             return errno;
@@ -130,8 +131,7 @@ int close_log() {
     return 0;
 }
 
-int write_permission_log(const char* pathname,
-                         mode_t current_permission,
+int write_permission_log(const char* pathname, mode_t current_permission,
                          mode_t new_permission) {
     if (current_permission == new_permission) {
         return 0;
@@ -147,16 +147,15 @@ int write_permission_log(const char* pathname,
     octal_to_string(current_permission, curr_perm_str);
     octal_to_string(new_permission, new_perm_str);
 
-    snprintf(info, kSize, "%s : %s : %s",
-             pathname, curr_perm_str, new_perm_str);
+    snprintf(info, kSize, "%s : %s : %s", pathname, curr_perm_str,
+             new_perm_str);
     return write_log(FILE_MODF, info);
 }
 
 int write_process_create_log(int argc, char* argv[]) {
     size_t size = 0;
 
-    for (size_t i = 0; i < argc; i++)
-        size += strlen(argv[i]) + 1;
+    for (size_t i = 0; i < argc; i++) size += strlen(argv[i]) + 1;
 
     char* cmd_line = malloc(size);
     char* begin = cmd_line;

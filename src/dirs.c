@@ -31,9 +31,7 @@ void setup_argv(cmd_args_t* args, char* argv[], char* new_path) {
  *
  * @return an error value.
  **/
-int recursive_change_mod(const char* pathname,
-                         cmd_args_t* args,
-                         char* argv[],
+int recursive_change_mod(const char* pathname, cmd_args_t* args, char* argv[],
                          char* envp[]) {
     // used find ..  -printf '%M %p\n' | wc -l, and  ./xmod .. | wc -l, to test
     // if this func works correctly
@@ -57,8 +55,6 @@ int recursive_change_mod(const char* pathname,
     char new_path[kPath_size];
     lock_process();
     while ((directory_entry = readdir(directory)) != NULL) {
-        errno = 0;
-
         if (!strcmp(directory_entry->d_name, "..") ||
             !strcmp(directory_entry->d_name, "."))
             continue;
@@ -76,7 +72,7 @@ int recursive_change_mod(const char* pathname,
         // printf(" is dir: %d access mode: %o\n", is_dir(&status),
         //       get_access_perms(&status));
 
-        //lock_process();
+        // lock_process();
 
         if (is_dir(&status)) {
             fflush(NULL);  // flush the output buffer so that printf doesn't
@@ -101,18 +97,21 @@ int recursive_change_mod(const char* pathname,
                 int w_status;
                 char out[255];
 
-                if((pid = wait(&w_status)) == -1 && errno == ECHILD) break;
-                if(pid == -1) continue;
+                errno = 0;
+                while ((pid = wait(&w_status)) == -1 && errno == EINTR)
+                    ;  // while the result of wait isn't interrupted by a system
+                       // call
 
-                
-                if(WIFSIGNALED(w_status) && WTERMSIG(w_status) != SIGINT) {
-                    snprintf(out, sizeof(out), "%d", -WTERMSIG(w_status));
-                    write_log(PROC_EXIT, out);
-                } else if(!WIFSIGNALED(w_status)) {
-                    snprintf(out, sizeof(out), "%d", WEXITSTATUS(w_status));
-                    write_log(PROC_EXIT, out);
+                if (pid > 0) {  // if there was child not caught by sigchld
+                    if (WIFSIGNALED(w_status) && WTERMSIG(w_status) != SIGINT) {
+                        snprintf(out, sizeof(out), "%d", -WTERMSIG(w_status));
+                        write_log(PROC_EXIT, out);
+                    } else if (!WIFSIGNALED(w_status)) {
+                        snprintf(out, sizeof(out), "%d", WEXITSTATUS(w_status));
+                        write_log(PROC_EXIT, out);
+                    }
+                    fflush(NULL);
                 }
-                fflush(NULL);
             }
         } else {
             lock_process();
@@ -123,7 +122,7 @@ int recursive_change_mod(const char* pathname,
             }
         }
 
-        
+        errno = 0;
     }
 
     if (errno != 0) {
