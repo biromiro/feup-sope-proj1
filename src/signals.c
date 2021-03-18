@@ -60,20 +60,17 @@ void sig_int_process(int signo) {
     write_signal_recv_log(signo);
 
     if (waiting) {
-        // printf("Process killed\n");
         exit(1);
     }
     waiting = true;
 
-    pinfo_t *info = get_pinfo();
-
-    printf("%d ; %s ; %d ; %d \n", getpid(), info->curr_file, 5, 4);
+    print_proc_info();
     if (is_root_process()) {
         last_recv = time(NULL);
 
         wait_for_children();
 
-        printf("Do you want to exit? (y/Y or other to continue)\n");
+        printf("Do you want to exit? (y/Y to exit or other to continue)\n");
         char c = get_clean_char();
         switch (toupper(c)) {
             case 'Y':

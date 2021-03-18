@@ -8,6 +8,7 @@
 #include "../include/dirs.h"
 #include "../include/file_status.h"
 #include "../include/logger.h"
+#include "../include/process.h"
 #include "../include/signals.h"
 
 int handle_change_mods(cmd_args_t *args, char *argv[], char *envp[]) {
@@ -58,6 +59,8 @@ int change_perms(const char *pathname, cmd_args_t *args, struct stat *status) {
         perror("ERROR CALLING CHMOD");
         return res;
     }
+
+    update_file_status_pinfo(current_permission != new_permission);
 
     print_chmod_call(current_permission, new_permission, pathname, args);
 
