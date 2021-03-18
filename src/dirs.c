@@ -12,9 +12,9 @@
 
 #include "../include/file_status.h"
 #include "../include/permission_caller.h"
+#include "../include/process.h"
 #include "../include/signals.h"
 #include "../include/logger.h"
-#include "../include/process.h"
 
 void setup_argv(cmd_args_t* args, char* argv[], char* new_path) {
     argv[args->files_start] = new_path;
@@ -73,6 +73,8 @@ int recursive_change_mod(const char* pathname, cmd_args_t* args, char* argv[],
         //       get_access_perms(&status));
 
         // lock_process();
+
+        update_file_pinfo(new_path);
 
         if (is_dir(&status)) {
             fflush(NULL);  // flush the output buffer so that printf doesn't

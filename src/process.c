@@ -16,9 +16,13 @@ void setup_pinfo() {
 }
 
 void update_file_pinfo(const char* path) {
-    printf("PINFO: %ld, '%s'\n", (u_int64_t)pinfo.curr_file, pinfo.curr_file);
     pinfo.curr_file = realloc(pinfo.curr_file, strlen(path) + 1);
     snprintf(pinfo.curr_file, strlen(path) + 1, "%s", path);
+}
+
+void print_proc_info() {
+    printf("%d ; %s ; %d ; %d \n", getpid(), pinfo.curr_file, pinfo.files_found,
+           pinfo.files_changed);
 }
 
 void update_pid_pinfo(pid_t pid) { pinfo.child_pid = pid; }

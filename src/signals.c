@@ -57,9 +57,7 @@ void sig_int_process(int signo) {
     }
     waiting = true;
 
-    pinfo_t* info = get_pinfo();
-
-    printf("%d ; %s ; %d ; %d \n", getpid(), info->curr_file, 5, 4);
+    print_proc_info();
     if (is_root_process()) {
         last_recv = time(NULL);
 
