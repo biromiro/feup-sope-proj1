@@ -7,6 +7,9 @@
 #define NO_OVERRIDE_SIG(s) \
     (s != SIGKILL && s != SIGSTOP && s != 32 && s != 33 && s != SIGUSR1)
 
+
+#define TIMEOUT 1e3
+
 #include <stdbool.h>
 
 /**
@@ -40,6 +43,8 @@ void lock_wait_process();
  * tries to check if a signal has triggered and handles it.
  */
 void lock_process();
+
+void reset_handlers();
 
 /**
  * @brief Registers to the log a signal received

@@ -30,15 +30,6 @@ static const char* const event_to_string[] = {
     "PROC_CREAT", "PROC_EXIT", "SIGNAL_RECV", "SIGNAL_SENT", "FILE_MODF"};
 
 /**
- * @brief Gets the current time in milliseconds since epoch
- */
-void read_curr_time_ms(clock_ms_t* clock_val) {
-    struct timespec tp;
-    clock_gettime(CLOCK_REALTIME, &tp);
-    *clock_val = tp.tv_sec * 1000 + (tp.tv_nsec / 1000000);
-}
-
-/**
  * @brief Setups envp to send the initial timer
  */
 void setup_envp(clock_ms_t start_time) {

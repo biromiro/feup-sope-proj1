@@ -32,9 +32,7 @@ void setup_argv(cmd_args_t* args, char* argv[], char* new_path) {
  *
  * @return an error value.
  **/
-int recursive_change_mod(const char* pathname,
-                         cmd_args_t* args,
-                         char* argv[],
+int recursive_change_mod(const char* pathname, cmd_args_t* args, char* argv[],
                          char* envp[]) {
     // used find ..  -printf '%M %p\n' | wc -l, and  ./xmod .. | wc -l, to test
     // if this func works correctly
@@ -84,12 +82,9 @@ int recursive_change_mod(const char* pathname,
             fflush(NULL);  // flush the output buffer so that printf doesn't
                            // print both on parent and on child process
             int id = fork();
-            if (id == -1) {
-                closedir(directory);
-                perror("fork error");
-                return errno;
-            }
-
+            reset_handlers();  // after fork child has the same pipe
+                               // descriptors as parent, this lessens the
+                               // chance of interference
             if (id == 0) {
                 closedir(directory);
 
@@ -97,6 +92,10 @@ int recursive_change_mod(const char* pathname,
 
                 lock_process();
                 return execve("xmod", argv, environ);
+            } else if (id == -1) {
+                closedir(directory);
+                perror("fork error");
+                return errno;
             } else {
                 lock_wait_process();
             }

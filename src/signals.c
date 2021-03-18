@@ -18,7 +18,7 @@
 #include "../include/process.h"
 
 static bool waiting = false;
-static time_t last_recv;
+static clock_ms_t last_recv;
 static int pipes[2];
 
 bool is_waiting() { return waiting; }
@@ -35,19 +35,25 @@ void lock_wait_process() {
  * @brief Waits for children to print their info about the process after SIGKILL
  */
 void wait_for_children() {
-    while (time(NULL) <= last_recv)
-        ;
+    clock_ms_t time;
+
+    do {
+        read_curr_time_ms(&time);
+    } while (time <= last_recv);
 }
 
 void catch_int(int signo) {
     char out[4];
     int size = int_to_string(signo, out, sizeof(out));
 
-    write(pipes[1], out, size + 1);
+    for(int i = 0; i <= size; i++) {
+        write(pipes[1], out+i, 1);
+    }
 }
 
 void catch_usr1(int signo) {
-    last_recv = time(NULL);
+    read_curr_time_ms(&last_recv);
+    last_recv += TIMEOUT;
 
     catch_int(signo);
 }
@@ -67,11 +73,13 @@ void handle_sig_int(int signo) {
 
     print_proc_info();
     if (is_root_process()) {
-        last_recv = time(NULL);
+        read_curr_time_ms(&last_recv);
+        last_recv += TIMEOUT;
 
         wait_for_children();
 
-        dprintf(STDERR_FILENO, "Do you want to exit? (y/Y to exit or other to continue)\n");
+        dprintf(STDERR_FILENO,
+                "Do you want to exit? (y/Y to exit or other to continue)\n");
         char c = get_clean_char();
         switch (toupper(c)) {
             case 'Y':
@@ -99,10 +107,8 @@ void handle_sig_int(int signo) {
 void handle_sig_cont(int signo) {
     errno = 0;
     write_signal_recv_log(signo);
-    if (waiting) {
-        // printf("Continue process\n");
-        waiting = false;
-    }
+
+    waiting = false;
 }
 
 /**
@@ -173,6 +179,12 @@ void unsetup_handlers() {
     close(pipes[1]);
 }
 
+void reset_handlers() {
+    lock_process();
+    pipe(pipes);
+    fcntl(pipes[0], F_SETFL, O_NONBLOCK);
+}
+
 void lock_process() {
     char out[4];
     char* cur;
@@ -180,6 +192,7 @@ void lock_process() {
     bool blocked = false;
 
     while (!blocked || waiting) {
+        blocked = false;
         cur = out;
         err = 0;
         signo = 0;
