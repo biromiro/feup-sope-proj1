@@ -106,9 +106,6 @@ int recursive_change_mod(const char* pathname, cmd_args_t* args, char* argv[],
                     if (WIFSIGNALED(w_status) && WTERMSIG(w_status) != SIGINT) {
                         snprintf(out, sizeof(out), "%d", -WTERMSIG(w_status));
                         write_log(PROC_EXIT, out);
-                    } else if (!WIFSIGNALED(w_status)) {
-                        snprintf(out, sizeof(out), "%d", WEXITSTATUS(w_status));
-                        write_log(PROC_EXIT, out);
                     }
                     fflush(NULL);
                 }

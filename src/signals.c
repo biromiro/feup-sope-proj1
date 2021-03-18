@@ -53,11 +53,7 @@ void sig_int_process(int signo) {
     write_signal_recv_log(signo);
 
     if (waiting) {
-        char out[255];
-        snprintf(out, sizeof(out), "%d", -SIGINT);
-        update_pid_pinfo(getpid());
-        write_log(PROC_EXIT, out);
-        exit(1);
+        set_and_exit(-SIGINT);
     }
     waiting = true;
 
@@ -76,7 +72,7 @@ void sig_int_process(int signo) {
             case 'Y':
                 killpg(getpgrp(), SIGINT);
                 write_signal_send_group_log(getpgrp(), SIGINT);
-                exit(1);
+                set_and_exit(-SIGINT);
                 break;
             default:
                 killpg(getpgrp(), SIGCONT);
@@ -87,8 +83,6 @@ void sig_int_process(int signo) {
         kill(get_super_process(), SIGUSR1);
         write_signal_send_process_log(get_super_process(), SIGUSR1);
     }
-
-    errno = 0;
 }
 
 /**
@@ -102,8 +96,6 @@ void sig_cont_process(int signo) {
         // printf("Continue process\n");
         waiting = false;
     }
-
-    errno = 0;
 }
 
 /**
@@ -123,11 +115,10 @@ void sig_chld() {
     char out[255];
 
     if (pid > 0) {
+        update_pid_pinfo(pid);
+
         if (WIFSIGNALED(w_status) && WTERMSIG(w_status) != SIGINT) {
             snprintf(out, sizeof(out), "%d", -WTERMSIG(w_status));
-            write_log(PROC_EXIT, out);
-        } else if (!WIFSIGNALED(w_status)) {
-            snprintf(out, sizeof(out), "%d", WEXITSTATUS(w_status));
             write_log(PROC_EXIT, out);
         }
         fflush(NULL);

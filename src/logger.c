@@ -77,7 +77,8 @@ int write_log(enum Event event, const char* info) {
     lseek(log_info.file_descriptor, 0, SEEK_END);
     int err;
     while ((err = write(log_info.file_descriptor, out, strlen(out))) == -1 &&
-           errno == EINTR);  // if interrupted by sig handler try again.
+           errno == EINTR)
+        ;  // if interrupted by sig handler try again.
 
     memset(&lock, 0, sizeof(lock));
     lock.l_type = F_UNLCK;
