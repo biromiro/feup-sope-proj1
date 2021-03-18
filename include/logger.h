@@ -66,4 +66,10 @@ int write_permission_log(const char* pathname,
 
 int write_process_create_log(int argc, char* argv[]);
 
+int write_signal_recv_log(int signo);
+
+int write_signal_send_group_log(int pid, int signo);
+
+int write_signal_send_process_log(int pid, int signo);
+
 #endif  // INCLUDE_LOGGER_H_

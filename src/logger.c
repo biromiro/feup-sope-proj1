@@ -11,6 +11,7 @@
 
 #include "../include/error/exit_codes.h"
 #include "../include/process.h"
+#include "../include/signals.h"
 
 #define LOG_ENV_VAR "LOG_FILENAME"
 
@@ -60,8 +61,27 @@ int write_log(enum Event event, const char* info) {
     int pid = getpid();
     int instant = clock() - log_info.begin;
 
-    int err = dprintf(log_info.file_descriptor, "%d ; %d ; %s ; %s\n", instant,
-                      pid, event_to_string[event], info);
+    char out[128];
+    snprintf(out, sizeof(out) + 1, "%d ; %d ; %s ; %s\n", instant,
+             pid, event_to_string[event], info);
+
+    struct flock lock;
+    memset(&lock, 0, sizeof(lock));
+
+    lock.l_type = F_WRLCK;
+
+    while (fcntl(log_info.file_descriptor, F_SETLK, &lock) == -1 &&
+           (errno == EACCES || errno == EAGAIN)) {
+    }
+
+    lseek(log_info.file_descriptor, 0, SEEK_END);
+    int err = write(log_info.file_descriptor, out, strlen(out));
+
+    memset(&lock, 0, sizeof(lock));
+    lock.l_type = F_UNLCK;
+    if (fcntl(log_info.file_descriptor, F_SETLK, &lock)) {
+        perror("error releasing log file lock");
+    }
 
     if (err < 0) {
         perror("log print");
@@ -149,4 +169,22 @@ int write_process_create_log(int argc, char* argv[]) {
     free(cmd_line);
 
     return res;
+}
+
+int write_signal_recv_log(int signo) {
+    char sig[4];
+    snprintf(sig, sizeof(sig) - 1, "%d", signo);
+    return write_log(SIGNAL_RECV, sig);
+}
+
+int write_signal_send_group_log(int pid, int signo) {
+    char sig[50];
+    snprintf(sig, sizeof(sig) - 1, "%d : %d (group)", signo, pid);
+    return write_log(SIGNAL_SENT, sig);
+}
+
+int write_signal_send_process_log(int pid, int signo) {
+    char sig[50];
+    snprintf(sig, sizeof(sig) - 1, "%d : %d", signo, pid);
+    return write_log(SIGNAL_SENT, sig);
 }
