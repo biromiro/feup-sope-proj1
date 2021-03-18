@@ -21,11 +21,6 @@ int setup_handlers();
 bool is_waiting();
 
 /**
- * @brief Locks the process and waits for children to finish their process
- */
-void lock_wait_process();
-
-/**
  * @brief Locks the process while waiting for user feedback
  */
 void lock_process();

@@ -20,14 +20,6 @@ static time_t last_recv;
 
 bool is_waiting() { return waiting; }
 
-void lock_wait_process() {
-    int wstat;
-    while (1) {
-        if (waiting) continue;
-        if (wait(&wstat) > 0) break;
-    }
-}
-
 void lock_process() {
     while (waiting) {
     }
@@ -107,20 +99,20 @@ void sig_recv_children(int signo) {
 }
 
 void sig_chld() {
-    int w_status;
-    pid_t pid;
-    pid = wait(&w_status);
-    char out[255];
+    // int w_status;
+    // pid_t pid;
+    // pid = wait(&w_status);
+    // char out[255];
 
-    if (pid > 0) {
-        update_pid_pinfo(pid);
+    // if (pid > 0) {
+    //     update_pid_pinfo(pid);
 
-        if (WIFSIGNALED(w_status) && WTERMSIG(w_status) != SIGINT) {
-            snprintf(out, sizeof(out), "%d", -WTERMSIG(w_status));
-            write_log(PROC_EXIT, out);
-        }
-        fflush(NULL);
-    }
+    //     if (WIFSIGNALED(w_status)) {
+    //         snprintf(out, sizeof(out), "%d", -WTERMSIG(w_status));
+    //         write_log(PROC_EXIT, out);
+    //     }
+    //     fflush(NULL);
+    // }
 }
 
 int setup_handlers() {

@@ -50,7 +50,9 @@ int main(int argc, char* argv[], char* envp[]) {
         default:
             return err;
     }
-    write_process_create_log(argc, argv);
+    if (is_root_process()) {  // special case for first process creation log
+        write_process_create_log(argc, argv);
+    }
 
     // struct stat status;
     // get_status(argv[1], &status);
