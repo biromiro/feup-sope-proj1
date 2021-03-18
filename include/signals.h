@@ -6,7 +6,7 @@
 
 #define NO_OVERRIDE_SIG(s)                                          \
     (s != SIGUSR1 && s != SIGINT && s != SIGCONT && s != SIGCHLD && \
-     i != SIGKILL && i != SIGSTOP && i != 32 && i != 33)
+     s != SIGKILL && s != SIGSTOP && s != 32 && s != 33)
 
 #include <stdbool.h>
 
