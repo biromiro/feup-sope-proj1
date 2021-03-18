@@ -89,6 +89,35 @@ void sig_int_process(int signo) {
     }
 }
 
+void log_handler(int signo) {
+    write_signal_recv_log(signo);
+    if (signal(signo, SIG_DFL) == NULL) {
+        perror("signal");
+        return;
+    }
+    raise(signo);
+}
+
+int setup_log_signals() {
+    struct sigaction new, old;
+    sigset_t smask;
+    for (size_t i = 1; i <= 64; i++) {
+        if (NO_OVERRIDE_SIG(i)) {
+            if (sigemptyset(&smask) == -1)
+                perror("mask");
+
+            new.sa_handler = log_handler;
+            new.sa_mask = smask;
+            new.sa_flags = 0;
+            if (sigaction(i, &new, &old) == -1) {
+                printf("SIG: %lu\n", i);
+                perror("sigaction");
+            }
+        }
+    }
+    return 0;
+}
+
 /**
  * @brief Handler to be called when SIGCONT is received
  * SIGCONT in the program context is received when the 
@@ -154,6 +183,8 @@ int setup_handlers() {
 
     if (sigaction(SIGUSR1, &new, &old) == -1)
         perror("sigaction");
+
+    setup_log_signals();
 
     return 0;
 }
