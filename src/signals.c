@@ -99,12 +99,14 @@ void log_handler(int signo) {
 }
 
 int setup_log_signals() {
-    struct sigaction new, old;
+    struct sigaction new = {0}, old = {0};
     sigset_t smask;
-    for (size_t i = 1; i <= 64; i++) {
+    for (size_t i = 1; i <= 63; i++) {
         if (NO_OVERRIDE_SIG(i)) {
-            if (sigemptyset(&smask) == -1)
+            if (sigemptyset(&smask) == -1) {
                 perror("mask");
+                return errno;
+            }
 
             new.sa_handler = log_handler;
             new.sa_mask = smask;
@@ -112,6 +114,7 @@ int setup_log_signals() {
             if (sigaction(i, &new, &old) == -1) {
                 printf("SIG: %lu\n", i);
                 perror("sigaction");
+                return errno;
             }
         }
     }
@@ -143,7 +146,7 @@ void sig_recv_children(int signo) {
 }
 
 int setup_handlers() {
-    struct sigaction new, old;
+    struct sigaction new = {0}, old= {0};
     sigset_t smask;
 
     if (sigemptyset(&smask) == -1) {
@@ -174,17 +177,19 @@ int setup_handlers() {
         return ERR_SIGACTION;
     }
 
-    if (sigemptyset(&smask) == -1)
+    if (sigemptyset(&smask) == -1) {
         perror("mask");
+        return ERR_SIGEMPTYMASK;
+    }
 
     new.sa_handler = sig_recv_children;
     new.sa_mask = smask;
     new.sa_flags = 0;
 
-    if (sigaction(SIGUSR1, &new, &old) == -1)
+    if (sigaction(SIGUSR1, &new, &old) == -1) {
         perror("sigaction");
+        return ERR_SIGACTION;
+    }
 
-    setup_log_signals();
-
-    return 0;
+    return setup_log_signals();
 }
