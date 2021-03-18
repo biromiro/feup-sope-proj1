@@ -9,6 +9,8 @@
 #include <time.h>
 #include <unistd.h>
 
+#include "../include/aux.h"
+#include "../include/dirs.h"
 #include "../include/error/exit_codes.h"
 #include "../include/process.h"
 #include "../include/signals.h"
@@ -16,7 +18,7 @@
 #define LOG_ENV_VAR "LOG_FILENAME"
 
 typedef struct log_info {
-    clock_t begin;
+    clock_ms_t begin;
     bool logging;
     bool init;
     int file_descriptor;
@@ -27,8 +29,38 @@ static log_info_t log_info = {0};
 static const char* const event_to_string[] = {
     "PROC_CREAT", "PROC_EXIT", "SIGNAL_RECV", "SIGNAL_SENT", "FILE_MODF"};
 
+/**
+ * @brief Gets the current time in milliseconds since epoch
+ */
+void read_curr_time_ms(clock_ms_t* clock_val) {
+    struct timespec tp;
+    clock_gettime(CLOCK_REALTIME, &tp);
+    *clock_val = tp.tv_sec * 1000 + (tp.tv_nsec / 1000000);
+}
+
+/**
+ * @brief Setups envp to send the initial timer
+ */
+void setup_envp(clock_ms_t start_time) {
+    char env_buf[128];
+    snprintf(env_buf, sizeof(env_buf),
+             "PROC_START_TIME_MS=%lu", start_time);
+
+    // Allocating just the necessary ammount
+    char* env_alloc_buf = malloc(strlen(env_buf) + 1);
+    snprintf(env_alloc_buf, strlen(env_buf) + 1, "%s", env_buf);
+    putenv(env_alloc_buf);
+}
+
 void init_log_info() {
-    log_info.begin = clock();
+    clock_ms_t start_time;
+    if (is_root_process()) {
+        read_curr_time_ms(&start_time);
+        setup_envp(start_time);
+    } else {
+        start_time = atol(getenv("PROC_START_TIME_MS"));
+    }
+    log_info.begin = start_time;
     log_info.file_descriptor = 0;
     log_info.logging = false;
     log_info.init = true;
@@ -59,10 +91,13 @@ int write_log(enum Event event, const char* info) {
     if (!log_info.logging) return 0;
 
     int pid = getpid();
-    int instant = clock() - log_info.begin;
+
+    clock_ms_t current_time_ms;
+    read_curr_time_ms(&current_time_ms);
+    clock_ms_t instant = current_time_ms - log_info.begin;
 
     char out[128];
-    snprintf(out, sizeof(out) + 1, "%d ; %d ; %s ; %s\n", instant,
+    snprintf(out, sizeof(out) + 1, "%lu ; %d ; %s ; %s\n", instant,
              pid, event_to_string[event], info);
 
     struct flock lock;

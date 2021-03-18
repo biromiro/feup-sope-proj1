@@ -14,6 +14,8 @@
 #include "../include/permission_caller.h"
 #include "../include/signals.h"
 
+extern char** environ;
+
 void setup_argv(cmd_args_t* args, char* argv[], char* new_path) {
     argv[args->files_start] = new_path;
     if (args->files_end > args->files_start + 1)
@@ -91,8 +93,7 @@ int recursive_change_mod(const char* pathname,
                 setup_argv(args, argv, new_path);
 
                 lock_process();
-
-                return execve("xmod", argv, envp);
+                return execve("xmod", argv, environ);
             } else {
                 lock_wait_process();
             }

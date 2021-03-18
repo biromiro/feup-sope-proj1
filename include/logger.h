@@ -11,6 +11,8 @@ enum Event { PROC_CREAT = 0,
              SIGNAL_SENT,
              FILE_MODF };
 
+extern char** environ;
+
 /**
  * @brief Initializes the log_info struct.
  **/
