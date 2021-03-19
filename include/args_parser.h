@@ -1,9 +1,9 @@
 #ifndef INCLUDE_ARGS_PARSER_H_
 #define INCLUDE_ARGS_PARSER_H_
 
-#include <sys/stat.h>
-#include <stddef.h>
 #include <stdbool.h>
+#include <stddef.h>
+#include <sys/stat.h>
 
 #include "error/exit_codes.h"
 
@@ -30,7 +30,10 @@ typedef struct cmd_options {
 /**
  * Enumerates the different changes to a user's type
  */
-typedef enum { ADD, REMOVE, SUBSTITUTE, UNCHANGED } perm_change_type;
+typedef enum { ADD,
+               REMOVE,
+               SUBSTITUTE,
+               UNCHANGED } perm_change_type;
 
 /**
  * Defines the type of permission change to make to each user
@@ -120,5 +123,7 @@ char parse_user_type_perms(char* user_perms);
  * @param perms the permissions to calculate
  */
 char get_sum_perms(char* perms);
+
+void trim_leading_path_slash(cmd_args_t* args, char* argv[]);
 
 #endif  // INCLUDE_ARGS_PARSER_H_
