@@ -23,14 +23,6 @@ static int pipes[2];
 
 bool is_waiting() { return waiting; }
 
-void lock_wait_process() {
-    int wstat;
-    while (1) {
-        lock_process();
-        if (wait(&wstat) > 0) break;
-    }
-}
-
 /**
  * @brief Waits for children to print their info about the process after SIGKILL
  */
@@ -67,7 +59,7 @@ void handle_sig_int(int signo) {
     write_signal_recv_log(signo);
 
     if (waiting) {
-        exit(1);
+        set_and_exit(-SIGINT);
     }
     waiting = true;
 
@@ -79,13 +71,13 @@ void handle_sig_int(int signo) {
         wait_for_children();
 
         dprintf(STDERR_FILENO,
-                "Do you want to exit? (y/Y to exit or other to continue)\n");
+                "Do you want to exit? (y/Y or other to continue)\n");
         char c = get_clean_char();
         switch (toupper(c)) {
             case 'Y':
                 killpg(getpgrp(), SIGINT);
                 write_signal_send_group_log(getpgrp(), SIGINT);
-                exit(1);
+                set_and_exit(-SIGINT);
                 break;
             default:
                 waiting = false;

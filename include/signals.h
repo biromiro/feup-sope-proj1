@@ -34,11 +34,6 @@ void unsetup_handlers();
 bool is_waiting();
 
 /**
- * @brief Locks the process and waits for children to finish their process
- */
-void lock_wait_process();
-
-/**
  * @brief Locks the process while waiting for user feedback on interruption, or
  * tries to check if a signal has triggered and handles it.
  */
