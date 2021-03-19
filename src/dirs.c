@@ -151,7 +151,14 @@ int recursive_change_mod(const char* pathname, cmd_args_t* args, char* argv[],
         } else {
             lock_process();
             if (change_perms(new_path, args, &status) != 0) {
-                //if(errno == EACCES || errno == )
+                if (errno == EACCES || errno == EPERM || errno == EROFS) {
+                    dprintf(STDERR_FILENO,
+                            "xmod: changing permissions of '%s: %s\n", new_path,
+                            strerror(errno));
+                    if (args->options.verbose) print_fail_call(new_path, args);
+
+                    continue;
+                }
 
                 closedir(directory);
                 return errno;
