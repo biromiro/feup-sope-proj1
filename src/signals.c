@@ -120,6 +120,14 @@ void handle_sig_usr1(int signo) {
     write_signal_recv_log(signo);
 }
 
+/**
+ * @brief Handler to be called when children sends SIGCHLD
+ */
+void handle_sig_child(int signo) {
+    errno = 0;
+    write_signal_recv_log(signo);
+}
+
 void log_handler(int signo) {
     write_signal_recv_log(signo);
     if (signal(signo, SIG_DFL) == NULL) {
@@ -230,6 +238,9 @@ void lock_process() {
                 break;
             case SIGUSR1:
                 handle_sig_usr1(signo);
+                break;
+            case SIGCHLD:
+                handle_sig_child(signo);
                 break;
             default:
                 log_handler(signo);

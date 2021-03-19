@@ -38,9 +38,9 @@ int main(int argc, char* argv[], char* envp[]) {
         default:
             return err;
     }
-    lock_process();
 
     write_process_create_log(argc, argv);
+    lock_process();
 
     // struct stat status;
     // get_status(argv[1], &status);
