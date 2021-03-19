@@ -115,10 +115,6 @@ int recursive_change_mod(const char* pathname, cmd_args_t* args, char* argv[],
     struct stat status;
     int err;
 
-    if (get_status(pathname, &status)) {
-        return errno;
-    }
-
     DIR* directory = opendir(pathname);
 
     if (directory == NULL) {
@@ -140,11 +136,15 @@ int recursive_change_mod(const char* pathname, cmd_args_t* args, char* argv[],
         // printf("%s\n", new_path);
         // printf("CUR DIR: %s length %d", newPath, directory_entry->d_reclen);
 
-        if (get_status(new_path, &status)) {
+        if (get_lstatus(new_path, &status)) {
             closedir(directory);
             return errno;
         }
 
+        if(is_slink(&status)) {
+            printf("neither symbolic link '%s' nor referent has been changed\n", new_path);
+            continue;
+        }
         // printf(" is dir: %d access mode: %o\n", is_dir(&status),
         //       get_access_perms(&status));
 
