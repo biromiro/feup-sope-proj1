@@ -20,11 +20,24 @@ echo "Testing file 9" >> test_files/folder2/f9
 echo "Testing file 10" >> test_files/folder2/f10
 echo "Testing file 11" >> test_files/folder2/f11
 
+chmod -R +x test_files
 
 echo > tests/valgrind.log
 
 echo "TEST: valgrind -q --gen-suppressions=yes ./xmod -R 0888 test_files" >> tests/valgrind.log
 valgrind -q --gen-suppressions=yes ./xmod -R 0888 test_files  >> tests/valgrind.log
+
+echo "========================================"  >> tests/valgrind.log
+echo "========================================"  >> tests/valgrind.log
+
+echo "TEST: valgrind -q --gen-suppressions=yes ./xmod -R 0777 test_files" >> tests/valgrind.log
+valgrind -q --gen-suppressions=yes ./xmod -R 0777 >> tests/valgrind.log
+
+echo "========================================"  >> tests/valgrind.log
+echo "========================================"  >> tests/valgrind.log
+
+echo "TEST: valgrind -q --gen-suppressions=yes ./xmod -R 0777 test_files" >> tests/valgrind.log
+valgrind -q --gen-suppressions=yes ./xmod -R 0777 test_files  >> tests/valgrind.log
 
 echo "========================================"  >> tests/valgrind.log
 echo "========================================"  >> tests/valgrind.log
@@ -133,5 +146,7 @@ echo "========================================"  >> tests/valgrind.log
 
 echo "TEST: valgrind -q --gen-suppressions=yes ./xmod -cvR o=xxwwxxrrww,g-rrwwrrxxxxx,u+x test_files" >> tests/valgrind.log
 valgrind -q --gen-suppressions=yes ./xmod -cvR o=xxwwxxrrww,g-rrwwrrxxxxx,u+x test_files  >> tests/valgrind.log
+
+chmod -R 0777 test_files
 
 rm -rf test_files

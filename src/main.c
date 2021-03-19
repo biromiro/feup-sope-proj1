@@ -2,13 +2,13 @@
 #include <stdint.h>
 #include <stdio.h>
 #include <stdlib.h>
-#include <sys/wait.h>
 #include <string.h>
+#include <sys/wait.h>
 #include <unistd.h>
 
 #include "../include/args_parser.h"
-#include "../include/dirs.h"
 #include "../include/aux.h"
+#include "../include/dirs.h"
 #include "../include/error/exit_codes.h"
 #include "../include/file_status.h"
 #include "../include/logger.h"
@@ -16,12 +16,11 @@
 #include "../include/process.h"
 #include "../include/signals.h"
 
-
-void cleanup(void) { 
+void cleanup(void) {
     unsetup_handlers();
 
     if (!is_silent_exit()) {
-        char out[255];
+        char out[255] = "";
         int code = get_exit_code();
 
         snprintf(out, sizeof(out), "%d", code);
