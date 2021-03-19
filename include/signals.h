@@ -4,9 +4,11 @@
 #define ERR_SIGACTION 2
 #define ERR_SIGEMPTYMASK 3
 
-#define NO_OVERRIDE_SIG(s)                                          \
-    (s != SIGUSR1 && s != SIGINT && s != SIGCONT && s != SIGCHLD && \
-     s != SIGKILL && s != SIGSTOP && s != 32 && s != 33)
+#define NO_OVERRIDE_SIG(s) \
+    (s != SIGKILL && s != SIGSTOP && s != 32 && s != 33 && s != SIGUSR1)
+
+
+#define TIMEOUT 1e3
 
 #include <stdbool.h>
 
@@ -18,6 +20,13 @@
 int setup_handlers();
 
 /**
+ * @brief Frees resources used by signal handlers
+ *
+ * @return 0 if sucessfull.
+ */
+void unsetup_handlers();
+
+/**
  * @brief Verifies if process is waiting for user feedback
  *
  * @return process waiting for user feedback
@@ -25,13 +34,16 @@ int setup_handlers();
 bool is_waiting();
 
 /**
- * @brief Locks the process while waiting for user feedback
+ * @brief Locks the process while waiting for user feedback on interruption, or
+ * tries to check if a signal has triggered and handles it.
  */
 void lock_process();
 
+void reset_handlers();
+
 /**
  * @brief Registers to the log a signal received
- * 
+ *
  * @param signo Signal identifier
  */
 int sig_log_register(int signo);

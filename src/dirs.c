@@ -42,13 +42,11 @@ int try_enter_dir(DIR* directory, cmd_args_t* args, char* argv[],
                    // print both on parent and on child process
     lock_process();
     int id = fork();
-    if (id == -1) {
-        closedir(directory);
-        perror("fork error");
-        return errno;
-    }
 
     if (id == 0) {
+        reset_handlers();  // after fork child has the same pipe
+                           // descriptors as parent, this lessens the
+                           // chance of interference
         closedir(directory);
 
         setup_argv(args, argv, new_path);
@@ -63,6 +61,10 @@ int try_enter_dir(DIR* directory, cmd_args_t* args, char* argv[],
             perror("exec");
             return errno;
         }
+    } else if (id == -1) {
+        closedir(directory);
+        perror("fork error");
+        return errno;
     } else {
         update_pid_pinfo(id);
         pid_t pid;
@@ -151,8 +153,7 @@ int recursive_change_mod(const char* pathname, cmd_args_t* args, char* argv[],
         update_file_pinfo(new_path);
 
         if (is_dir(&status)) {
-            while (
-                (err = try_enter_dir(directory, args, argv, new_path))) {
+            while ((err = try_enter_dir(directory, args, argv, new_path))) {
                 if (err != UNJUST_CHILD_DEATH) {
                     return err;
                 }

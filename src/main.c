@@ -16,7 +16,10 @@
 #include "../include/process.h"
 #include "../include/signals.h"
 
-void cleanup(void) {
+
+void cleanup(void) { 
+    unsetup_handlers();
+
     if (!is_silent_exit()) {
         char out[255];
         int code = get_exit_code();
@@ -53,6 +56,7 @@ int main(int argc, char* argv[], char* envp[]) {
     if (is_root_process()) {  // special case for first process creation log
         write_process_create_log(argc, argv);
     }
+    lock_process();
 
     // struct stat status;
     // get_status(argv[1], &status);
@@ -72,5 +76,6 @@ int main(int argc, char* argv[], char* envp[]) {
     //        (args.files_start), (args.files_end));
     handle_change_mods(&args, argv, envp);
 
+    lock_process();
     set_and_exit(0);
 }
