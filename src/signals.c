@@ -1,5 +1,7 @@
 #include "../include/signals.h"
 
+#define _GNU_SOURCE
+
 #include <ctype.h>
 #include <errno.h>
 #include <signal.h>
@@ -10,8 +12,8 @@
 #include <sys/types.h>
 #include <sys/wait.h>
 #include <time.h>
-#include <unistd.h>
 #include <fcntl.h>
+#include <unistd.h>
 
 #include "../include/aux.h"
 #include "../include/logger.h"
@@ -31,21 +33,37 @@ void wait_for_children() {
 
     do {
         read_curr_time_ms(&time);
+        lock_process();
     } while (time <= last_recv);
 }
 
 void catch_int(int signo) {
     char out[4];
     int size = int_to_string(signo, out, sizeof(out));
+    int err = 0, original_errno = errno;
 
-    for(int i = 0; i <= size; i++) {
-        write(pipes[1], out+i, 1);
+    errno = 0;
+    for (int i = 0; i <= size;) {
+        err = write(pipes[1], out + i, 1);
+        if (err == -1 && errno == EINTR) continue;
+
+        i++;
     }
+    errno = original_errno;
 }
 
 void catch_usr1(int signo) {
     read_curr_time_ms(&last_recv);
     last_recv += TIMEOUT;
+
+    catch_int(signo);
+}
+
+void catch_sig_int(int signo) {
+    if (waiting) {
+        set_and_exit(-signo);
+    }
+    waiting = true;
 
     catch_int(signo);
 }
@@ -58,17 +76,14 @@ void handle_sig_int(int signo) {
 
     write_signal_recv_log(signo);
 
-    if (waiting) {
-        set_and_exit(-SIGINT);
-    }
-    waiting = true;
-
     print_proc_info();
     if (is_root_process()) {
+        waiting = false;
         read_curr_time_ms(&last_recv);
         last_recv += TIMEOUT;
 
         wait_for_children();
+        waiting = true;
 
         dprintf(STDERR_FILENO,
                 "Do you want to exit? (y/Y or other to continue)\n");
@@ -86,6 +101,7 @@ void handle_sig_int(int signo) {
                 break;
         }
     } else {
+        waiting = true;
         kill(get_super_process(), SIGUSR1);
         write_signal_send_process_log(get_super_process(), SIGUSR1);
     }
@@ -123,7 +139,6 @@ void handle_sig_child(int signo) {
 void log_handler(int signo) {
     write_signal_recv_log(signo);
     if (signal(signo, SIG_DFL) == NULL) {
-        perror("signal");
         return;
     }
     raise(signo);
@@ -135,7 +150,6 @@ int setup_log_signals() {
     for (size_t i = 1; i <= 63; i++) {
         if (NO_OVERRIDE_SIG(i)) {
             if (sigemptyset(&smask) == -1) {
-                perror("mask");
                 return errno;
             }
 
@@ -143,8 +157,6 @@ int setup_log_signals() {
             new.sa_mask = smask;
             new.sa_flags = 0;
             if (sigaction(i, &new, &old) == -1) {
-                printf("SIG: %lu\n", i);
-                perror("sigaction");
                 return errno;
             }
         }
@@ -153,13 +165,11 @@ int setup_log_signals() {
 }
 
 int setup_handlers() {
-    pipe(pipes);
-    fcntl(pipes[0], F_SETFL, O_NONBLOCK);
+    pipe2(pipes, O_NONBLOCK);
     struct sigaction new = {0}, old = {0};
     sigset_t smask;
 
     if (sigemptyset(&smask) == -1) {
-        perror("mask");
         return errno;
     }
 
@@ -167,7 +177,17 @@ int setup_handlers() {
     new.sa_mask = smask;
     new.sa_flags = 0;
     if (sigaction(SIGUSR1, &new, &old) == -1) {
-        perror("sigaction usr1");
+        return errno;
+    }
+
+    if (sigemptyset(&smask) == -1) {
+        return errno;
+    }
+
+    new.sa_handler = catch_sig_int;
+    new.sa_mask = smask;
+    new.sa_flags = 0;
+    if (sigaction(SIGINT, &new, &old) == -1) {
         return errno;
     }
 
@@ -179,11 +199,7 @@ void unsetup_handlers() {
     close(pipes[1]);
 }
 
-void reset_handlers() {
-    lock_process();
-    pipe(pipes);
-    fcntl(pipes[0], F_SETFL, O_NONBLOCK);
-}
+void reset_handlers() { pipe2(pipes, O_NONBLOCK); }
 
 void lock_process() {
     char out[4];
@@ -207,9 +223,8 @@ void lock_process() {
                 if (errno == EWOULDBLOCK) {
                     blocked = true;
                     break;
-                } else {
-                    perror("read pipe");
                 }
+
                 return;
             }
 

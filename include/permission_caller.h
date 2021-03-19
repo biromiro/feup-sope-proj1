@@ -6,6 +6,14 @@
 #define OCTAL_BASE 8
 
 /**
+ * @brief prints a failure call to stdout when a failure happens.
+ * 
+ * @param[in] pathname the path of the file to change.
+ * @param[in] args the arguments given to xmod.
+ */
+void print_fail_call(const char* const pathname, const cmd_args_t* const args);
+
+/**
  * @brief Handles the chmod call and takes into account the options given
  * 
  * @param[in] args the parsed arguments given

@@ -44,13 +44,9 @@ int get_clean_char() {
     return tmp;
 }
 
-int get_exit_code() {
-    return exit_code;
-}
+int get_exit_code() { return exit_code; }
 
-bool is_silent_exit() {
-    return silent_exit;
-}
+bool is_silent_exit() { return silent_exit; }
 
 void set_and_exit(int exit_c) {
     exit_code = exit_c;

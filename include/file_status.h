@@ -16,6 +16,17 @@
 int get_status(const char* const pathname, struct stat* status);
 
 /**
+ * @brief Gets the lstatus of the file.
+ *
+ * @param[in] pathname string containing the pathname of the file.
+ * @param[out] status pointer to a stat struct that will store information of
+ *the file.
+ *
+ * @return an error value.
+ **/
+int get_lstatus(const char* const pathname, struct stat* status);
+
+/**
  * @brief Checks if a file is a directory, given its status.
  *
  * @param[in] status const pointer to a stat struct that contains information on

@@ -93,8 +93,7 @@ int parse_args(cmd_args_t* args, int argc, char* argv[], char* envp[]) {
     args->files_end = argc;
 
     if (args->files_start == args->files_end) {
-        fprintf(stderr, "xmod: missing operand\n%s\n",
-                USAGE);
+        fprintf(stderr, "xmod: missing operand\n%s\n", USAGE);
         exit(BAD_ARGS);
     }
 
@@ -134,12 +133,10 @@ int parse_mode(char* mode, perm_operation_t* perm) {
     char* param = malloc(strlen(mode) + 1);
 
     if (param == NULL) {
-        perror("alloc param memory");
         return errno;
     }
 
     if (snprintf(param, strlen(mode) + 1, "%s", mode) < 0) {
-        perror("cpy error");
         return errno;
     }
     if (!isdigit(param[0])) {
