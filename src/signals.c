@@ -14,7 +14,6 @@
 #include "../include/logger.h"
 #include "../include/process.h"
 
-extern int errno;
 static bool waiting = false;
 static time_t last_recv;
 
@@ -75,6 +74,38 @@ void sig_int_process(int signo) {
     }
 }
 
+void log_handler(int signo) {
+    write_signal_recv_log(signo);
+    if (signal(signo, SIG_DFL) == NULL) {
+        perror("signal");
+        return;
+    }
+    raise(signo);
+}
+
+int setup_log_signals() {
+    struct sigaction new = {0}, old = {0};
+    sigset_t smask;
+    for (size_t i = 1; i <= 63; i++) {
+        if (NO_OVERRIDE_SIG(i)) {
+            if (sigemptyset(&smask) == -1) {
+                perror("mask");
+                return errno;
+            }
+
+            new.sa_handler = log_handler;
+            new.sa_mask = smask;
+            new.sa_flags = 0;
+            if (sigaction(i, &new, &old) == -1) {
+                printf("SIG: %lu\n", i);
+                perror("sigaction");
+                return errno;
+            }
+        }
+    }
+    return 0;
+}
+
 /**
  * @brief Handler to be called when SIGCONT is received
  * SIGCONT in the program context is received when the
@@ -98,25 +129,12 @@ void sig_recv_children(int signo) {
     last_recv = time(NULL);
 }
 
-void sig_chld() {
-    // int w_status;
-    // pid_t pid;
-    // pid = wait(&w_status);
-    // char out[255];
-
-    // if (pid > 0) {
-    //     update_pid_pinfo(pid);
-
-    //     if (WIFSIGNALED(w_status)) {
-    //         snprintf(out, sizeof(out), "%d", -WTERMSIG(w_status));
-    //         write_log(PROC_EXIT, out);
-    //     }
-    //     fflush(NULL);
-    // }
+void sig_chld(int signo) {
+    write_signal_recv_log(signo);
 }
 
 int setup_handlers() {
-    struct sigaction new, old;
+    struct sigaction new = {0}, old= {0};
     sigset_t smask;
 
     if (sigemptyset(&smask) == -1) {
@@ -147,19 +165,28 @@ int setup_handlers() {
         return ERR_SIGACTION;
     }
 
-    if (sigemptyset(&smask) == -1) perror("mask");
+    if (sigemptyset(&smask) == -1) {
+        perror("mask");
+        return ERR_SIGEMPTYMASK;
+    }
 
     new.sa_handler = sig_recv_children;
     new.sa_mask = smask;
     new.sa_flags = 0;
 
-    if (sigaction(SIGUSR1, &new, &old) == -1) perror("sigaction");
+    if (sigaction(SIGUSR1, &new, &old) == -1)  {
+        perror("sigaction");
+        return ERR_SIGACTION;
+    }
 
     new.sa_handler = sig_chld;
     new.sa_mask = smask;
     new.sa_flags = 0;
 
-    if (sigaction(SIGCHLD, &new, &old) == -1) perror("sigaction");
+    if (sigaction(SIGCHLD, &new, &old) == -1) {
+        perror("sigaction");
+        return ERR_SIGACTION;
+    }
 
-    return 0;
+    return setup_log_signals();
 }

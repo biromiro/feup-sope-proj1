@@ -91,6 +91,13 @@ int parse_args(cmd_args_t* args, int argc, char* argv[], char* envp[]) {
 
     args->files_start = next_op_idx + 1;
     args->files_end = argc;
+
+    if (args->files_start == args->files_end) {
+        fprintf(stderr, "xmod: missing operand\n%s\n",
+                USAGE);
+        exit(BAD_ARGS);
+    }
+
     return 0;
 }
 

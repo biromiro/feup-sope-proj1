@@ -34,7 +34,7 @@ int main(int argc, char* argv[], char* envp[]) {
     atexit(cleanup);
 
     if (setup_handlers()) {
-        fprintf(stderr, "Error setting up sig handlers");
+        fprintf(stderr, "Error setting up sig handlers\n");
         set_and_exit(ERR_SIGNAL_SETUP);
     }
 

@@ -17,6 +17,8 @@
 #include "../include/signals.h"
 #include "../include/logger.h"
 
+extern char** environ;
+
 void setup_argv(cmd_args_t* args, char* argv[], char* new_path) {
     argv[args->files_start] = new_path;
     if (args->files_end > args->files_start + 1)
@@ -30,12 +32,11 @@ void setup_argv(cmd_args_t* args, char* argv[], char* new_path) {
  * @param[in] directory pointer to the DIR being opened.
  * @param[in] args
  * @param[in] argv arguments given to xmod.
- * @param[in] envp env given to xmod.
  * @param[in] new_path path of the dir being opened.
  *
  * @return an error value.
  **/
-int try_enter_dir(DIR* directory, cmd_args_t* args, char* argv[], char* envp[],
+int try_enter_dir(DIR* directory, cmd_args_t* args, char* argv[],
                   char* new_path) {
     fflush(NULL);  // flush the output buffer so that printf doesn't
                    // print both on parent and on child process
@@ -58,7 +59,7 @@ int try_enter_dir(DIR* directory, cmd_args_t* args, char* argv[], char* envp[],
         fflush(NULL);                    // ensure it prints before it dies
 
         lock_process();
-        if (execve("xmod", argv, envp)) {
+        if (execve("xmod", argv, environ)) {
             perror("exec");
             return errno;
         }
@@ -151,7 +152,7 @@ int recursive_change_mod(const char* pathname, cmd_args_t* args, char* argv[],
 
         if (is_dir(&status)) {
             while (
-                (err = try_enter_dir(directory, args, argv, envp, new_path))) {
+                (err = try_enter_dir(directory, args, argv, new_path))) {
                 if (err != UNJUST_CHILD_DEATH) {
                     return err;
                 }

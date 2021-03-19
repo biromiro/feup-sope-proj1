@@ -2,6 +2,9 @@
 #define INCLUDE_AUX_H_
 
 #include <stdbool.h>
+#include <sys/types.h>
+
+typedef u_int64_t clock_ms_t;
 
 /**
  * @brief Waits for a char from stdin and cleans buffer
