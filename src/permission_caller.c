@@ -18,11 +18,20 @@ int handle_change_mods(cmd_args_t* args, char* argv[], char* envp[]) {
     for (size_t i = args->files_start; i < args->files_end; i++) {
         update_file_pinfo(argv[i]);
         lock_process();
-        if (get_status(argv[i], &status) != 0) {
+        if (get_lstatus(argv[i], &status) != 0) {
             fprintf(stderr,
                     "xmod: cannot access '%s': No such file or directory\n",
                     argv[i]);
             continue;
+        }
+
+        if(is_slink(&status)) {
+            if(get_status(argv[i], &status)) {
+                fprintf(stderr,
+                    "xmod: cannot operate on dangling symlink '%s'\n",
+                    argv[i]);
+                continue;
+            }
         }
 
         if ((err = change_perms(argv[i], args, &status)) != 0) {
@@ -32,13 +41,10 @@ int handle_change_mods(cmd_args_t* args, char* argv[], char* envp[]) {
 
         lock_process();
         if (args->options.recursive && is_dir(&status)) {
-            // printf("folder: %s\n", argv[i]);
             if ((err = recursive_change_mod(argv[i], args, argv, envp)) != 0) {
                 fprintf(stderr, "xmod: %s\n", strerror(err));
                 return err;
             }
-        } else {
-            // printf("file: %s\n", argv[i]);
         }
     }
 
@@ -55,7 +61,6 @@ int change_perms(const char* pathname, cmd_args_t* args, struct stat* status) {
     // Always verbose, needs change accounting for options
 
     if ((res = chmod(pathname, new_permission))) {
-        perror("ERROR CALLING CHMOD");
         return res;
     }
 

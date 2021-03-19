@@ -132,12 +132,10 @@ int parse_mode(char* mode, perm_operation_t* perm) {
     char* param = malloc(strlen(mode) + 1);
 
     if (param == NULL) {
-        perror("alloc param memory");
         return errno;
     }
 
     if (snprintf(param, strlen(mode) + 1, "%s", mode) < 0) {
-        perror("cpy error");
         return errno;
     }
     if (!isdigit(param[0])) {
