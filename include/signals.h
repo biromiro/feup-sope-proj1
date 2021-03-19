@@ -5,7 +5,7 @@
 #define ERR_SIGEMPTYMASK 3
 
 #define NO_OVERRIDE_SIG(s)                                          \
-    (s != SIGUSR1 && s != SIGINT && s != SIGCONT && \
+    (s != SIGUSR1 && s != SIGINT && s != SIGCONT && s != SIGCHLD && \
      s != SIGKILL && s != SIGSTOP && s != 32 && s != 33)
 
 #include <stdbool.h>
