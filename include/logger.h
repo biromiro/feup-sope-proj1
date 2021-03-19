@@ -3,7 +3,14 @@
 
 #include <stdbool.h>
 
-enum Event { PROC_CREAT = 0, PROC_EXIT, SIGNAL_RECV, SIGNAL_SENT, FILE_MODF };
+#include "../include/permission_caller.h"
+
+enum Event { PROC_CREAT = 0,
+             PROC_EXIT,
+             SIGNAL_RECV,
+             SIGNAL_SENT,
+             FILE_MODF };
+
 
 /**
  * @brief Initializes the log_info struct.
@@ -53,5 +60,17 @@ int write_log(enum Event event, const char* info);
  * @return an error value.
  **/
 int close_log();
+
+int write_permission_log(const char* pathname,
+                         mode_t current_permission,
+                         mode_t new_permission);
+
+int write_process_create_log(int argc, char* argv[]);
+
+int write_signal_recv_log(int signo);
+
+int write_signal_send_group_log(int pid, int signo);
+
+int write_signal_send_process_log(int pid, int signo);
 
 #endif  // INCLUDE_LOGGER_H_

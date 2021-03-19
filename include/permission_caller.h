@@ -36,7 +36,10 @@ int change_perms(const char *pathname, cmd_args_t *args, struct stat *status);
  * 
  * @return 0 upon sucess, an error flag otherwise
  */
-int get_new_perms(const char *pathname, const perm_operation_t *const permissions, mode_t current_perm, mode_t *const new_perm);
+int get_new_perms(const char *pathname,
+                  const perm_operation_t *const permissions,
+                  mode_t current_perm,
+                  mode_t *const new_perm);
 
 /**
  * @brief Gets the offset of the number in octal given its position. 
@@ -59,7 +62,10 @@ int get_octal_offset(int offset);
  * 
  * @return 0 upon sucess, an error flag otherwise
  */
-int print_chmod_call(mode_t current_permission, mode_t new_permission, const char *pathname, const cmd_args_t *const args);
+int print_chmod_call(mode_t current_permission,
+                     mode_t new_permission,
+                     const char *pathname,
+                     const cmd_args_t *const args);
 
 /**
  * @brief Gets the permission string in rwx terms for each group
@@ -68,6 +74,15 @@ int print_chmod_call(mode_t current_permission, mode_t new_permission, const cha
  * @param[out] perm_string the permission string
  * @param[in] buffer_size the size of the string
  */
-void get_permission_string(mode_t permission, char *perm_string, size_t buffer_size);
+void get_permission_string(mode_t permission,
+                           char *perm_string, size_t buffer_size);
+
+/**
+ * @brief Converts an octal permission to a 4 digit string
+ * 
+ * @param[in] octal the octal permission
+ * @param[out] output the string to store the octal permission
+ */
+void octal_to_string(mode_t octal, char *output);
 
 #endif  // INCLUDE_PERMISSION_CALLER_H_

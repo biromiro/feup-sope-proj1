@@ -15,6 +15,14 @@
 #include "../include/process.h"
 #include "../include/signals.h"
 
+extern char** environ;
+
+void setup_argv(cmd_args_t* args, char* argv[], char* new_path) {
+    argv[args->files_start] = new_path;
+    if (args->files_end > args->files_start + 1)
+        argv[args->files_start + 1] = 0;
+}
+
 /**
  * @brief Changes the permissions of all files inside a directory, recursively
  *opening directories inside it.
@@ -24,7 +32,6 @@
  *
  * @return an error value.
  **/
-
 int recursive_change_mod(const char* pathname,
                          cmd_args_t* args,
                          char* argv[],
@@ -50,8 +57,8 @@ int recursive_change_mod(const char* pathname,
     const size_t kPath_size = (strlen(pathname)) + MAXNAMLEN + 2;
     char new_path[kPath_size];
 
-    errno = 0;
     while ((directory_entry = readdir(directory)) != NULL) {
+        errno = 0;
         if (!strcmp(directory_entry->d_name, "..") ||
             !strcmp(directory_entry->d_name, "."))
             continue;
@@ -86,12 +93,10 @@ int recursive_change_mod(const char* pathname,
             if (id == 0) {
                 closedir(directory);
 
-                argv[args->files_start] = new_path;
-                if (args->files_end > args->files_start + 1)
-                    argv[args->files_start + 1] = 0;
+                setup_argv(args, argv, new_path);
 
                 lock_process();
-                return execve("xmod", argv, envp);
+                return execve("xmod", argv, environ);
             } else {
                 lock_wait_process();
             }

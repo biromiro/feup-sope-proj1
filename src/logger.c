@@ -9,12 +9,16 @@
 #include <time.h>
 #include <unistd.h>
 
+#include "../include/aux.h"
+#include "../include/dirs.h"
 #include "../include/error/exit_codes.h"
+#include "../include/process.h"
+#include "../include/signals.h"
 
 #define LOG_ENV_VAR "LOG_FILENAME"
 
 typedef struct log_info {
-    clock_t begin;
+    clock_ms_t begin;
     bool logging;
     bool init;
     int file_descriptor;
@@ -25,8 +29,42 @@ static log_info_t log_info = {0};
 static const char* const event_to_string[] = {
     "PROC_CREAT", "PROC_EXIT", "SIGNAL_RECV", "SIGNAL_SENT", "FILE_MODF"};
 
+/**
+ * @brief Gets the current time in milliseconds since epoch
+ */
+void read_curr_time_ms(clock_ms_t* clock_val) {
+    struct timespec tp;
+    clock_gettime(CLOCK_REALTIME, &tp);
+    *clock_val = tp.tv_sec * 1000 + (tp.tv_nsec / 1000000);
+}
+
+/**
+ * @brief Setups envp to send the initial timer
+ */
+void setup_envp(clock_ms_t start_time) {
+    char env_buf[128];
+    snprintf(env_buf, sizeof(env_buf),
+             "PROC_START_TIME_MS=%lu", start_time);
+
+    // Allocating just the necessary ammount
+    char* env_alloc_buf = malloc(strlen(env_buf) + 1);
+    snprintf(env_alloc_buf, strlen(env_buf) + 1, "%s", env_buf);
+    putenv(env_alloc_buf);
+    free(env_alloc_buf);
+}
+
 void init_log_info() {
-    log_info.begin = clock();
+    clock_ms_t start_time = 0;
+    char * env_start;
+    if (is_root_process()) {
+        read_curr_time_ms(&start_time);
+        setup_envp(start_time);
+    } else {
+        env_start = getenv("PROC_START_TIME_MS");
+        if(env_start != NULL)
+            start_time = atol(env_start);
+    }
+    log_info.begin = start_time;
     log_info.file_descriptor = 0;
     log_info.logging = false;
     log_info.init = true;
@@ -57,10 +95,32 @@ int write_log(enum Event event, const char* info) {
     if (!log_info.logging) return 0;
 
     int pid = getpid();
-    int instant = clock() - log_info.begin;
 
-    int err = dprintf(log_info.file_descriptor, "%d ; %d ; %s ; %s\n", instant,
-                      pid, event_to_string[event], info);
+    clock_ms_t current_time_ms = 0;
+    read_curr_time_ms(&current_time_ms);
+    clock_ms_t instant = current_time_ms - log_info.begin;
+
+    char out[128] = "";
+    snprintf(out, sizeof(out), "%lu ; %d ; %s ; %s\n", instant,
+             pid, event_to_string[event], info);
+
+    struct flock lock;
+    memset(&lock, 0, sizeof(lock));
+
+    lock.l_type = F_WRLCK;
+
+    while (fcntl(log_info.file_descriptor, F_SETLK, &lock) == -1 &&
+           (errno == EACCES || errno == EAGAIN)) {
+    }
+
+    lseek(log_info.file_descriptor, 0, SEEK_END);
+    int err = write(log_info.file_descriptor, out, strlen(out));
+
+    memset(&lock, 0, sizeof(lock));
+    lock.l_type = F_UNLCK;
+    if (fcntl(log_info.file_descriptor, F_SETLK, &lock)) {
+        perror("error releasing log file lock");
+    }
 
     if (err < 0) {
         perror("log print");
@@ -76,10 +136,20 @@ int open_log() {
     const char* path_name = getenv(LOG_ENV_VAR);
     if (!path_name || strlen(path_name) == 0) return NO_FILE_GIVEN;
 
-    if ((log_info.file_descriptor =
-             creat(path_name, S_IRWXU | S_IRWXG | S_IRWXO)) == -1) {
-        perror("open/create log");
-        return errno;
+    if (is_root_process()) {
+        if ((log_info.file_descriptor =
+                 creat(path_name, S_IRWXU | S_IRWXG | S_IRWXO)) == -1) {
+            perror("open/create log (creat)");
+            return errno;
+        }
+    } else {
+        if ((log_info.file_descriptor =
+                 open(path_name,
+                      O_APPEND | O_WRONLY)) == -1) {
+            printf("%s\n", path_name);
+            perror("open/create log (open)");
+            return errno;
+        }
     }
 
     log_info.logging = true;
@@ -97,4 +167,63 @@ int close_log() {
 
     log_info.logging = false;
     return 0;
+}
+
+int write_permission_log(const char* pathname,
+                         mode_t current_permission,
+                         mode_t new_permission) {
+    if (current_permission == new_permission) {
+        return 0;
+    }
+
+    // 8 + spaces and ':'
+    const size_t kSize = strlen(pathname) + 15;
+
+    char info[kSize];
+    char curr_perm_str[5];
+    char new_perm_str[5];
+
+    octal_to_string(current_permission, curr_perm_str);
+    octal_to_string(new_permission, new_perm_str);
+
+    snprintf(info, kSize, "%s : %s : %s",
+             pathname, curr_perm_str, new_perm_str);
+    return write_log(FILE_MODF, info);
+}
+
+int write_process_create_log(int argc, char* argv[]) {
+    size_t size = 0;
+
+    for (size_t i = 0; i < argc; i++)
+        size += strlen(argv[i]) + 1;
+
+    char* cmd_line = (char*)malloc(size);
+    char* begin = cmd_line;
+    for (size_t i = 0; i < argc; i++) {
+        begin += snprintf(begin, size, i > 0 ? " %s" : "%s", argv[i]);
+    }
+
+    int res = write_log(PROC_CREAT, cmd_line);
+
+    free(cmd_line);
+
+    return res;
+}
+
+int write_signal_recv_log(int signo) {
+    char sig[4];
+    snprintf(sig, sizeof(sig) - 1, "%d", signo);
+    return write_log(SIGNAL_RECV, sig);
+}
+
+int write_signal_send_group_log(int pid, int signo) {
+    char sig[50];
+    snprintf(sig, sizeof(sig) - 1, "%d : %d (group)", signo, pid);
+    return write_log(SIGNAL_SENT, sig);
+}
+
+int write_signal_send_process_log(int pid, int signo) {
+    char sig[50];
+    snprintf(sig, sizeof(sig) - 1, "%d : %d", signo, pid);
+    return write_log(SIGNAL_SENT, sig);
 }

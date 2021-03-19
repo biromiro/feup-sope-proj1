@@ -52,4 +52,18 @@ void update_file_status_pinfo(bool changed);
  */
 pinfo_t *get_pinfo();
 
+/**
+ * @brief First process - the "oldest" parent
+ * 
+ * @return first process of the chain
+ */
+int get_super_process();
+
+/**
+ * Is the root process
+ * 
+ * @return true if root process
+ */
+bool is_root_process();
+
 #endif  // INCLUDE_PROCESS_H_
