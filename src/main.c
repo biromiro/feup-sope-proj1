@@ -42,7 +42,7 @@ int main(int argc, char* argv[], char* envp[]) {
 
     init_log_info();
 
-    int err;
+    int err = 0;
 
     err = open_log();
     switch (err) {
@@ -52,6 +52,7 @@ int main(int argc, char* argv[], char* envp[]) {
         default:
             return err;
     }
+    err = 0;
     if (is_root_process()) {  // special case for first process creation log
         write_process_create_log(argc, argv);
     }
@@ -59,8 +60,8 @@ int main(int argc, char* argv[], char* envp[]) {
 
     cmd_args_t args;
     parse_args(&args, argc, argv, envp);
-    handle_change_mods(&args, argv, envp);
+    err = handle_change_mods(&args, argv, envp);
 
     lock_process();
-    set_and_exit(0);
+    set_and_exit(err);
 }

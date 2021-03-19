@@ -145,12 +145,14 @@ int recursive_change_mod(const char* pathname, cmd_args_t* args, char* argv[],
         if (is_dir(&status)) {
             while ((err = try_enter_dir(directory, args, argv, new_path))) {
                 if (err != UNJUST_CHILD_DEATH) {
-                    return err;
+                    break;
                 }
             }
         } else {
             lock_process();
             if (change_perms(new_path, args, &status) != 0) {
+                //if(errno == EACCES || errno == )
+
                 closedir(directory);
                 return errno;
             }

@@ -4,12 +4,34 @@
 #include <stdio.h>
 #include <string.h>
 #include <sys/stat.h>
+#include <errno.h>
 
 #include "../include/dirs.h"
 #include "../include/file_status.h"
 #include "../include/logger.h"
 #include "../include/process.h"
 #include "../include/signals.h"
+
+void print_fail_call(const char* const pathname, const cmd_args_t* const args) {
+    mode_t current_permission = 0, new_permission = 0;
+    struct stat status;
+
+    if (get_lstatus(pathname, &status) == 0) {
+        current_permission = get_access_perms(&status);
+    }
+
+    get_new_perms(pathname, &args->mode, current_permission, &new_permission);
+
+    char new_perm_string[10], cur_perm_string[10];
+    get_permission_string(new_permission, new_perm_string,
+                          sizeof(new_perm_string));
+    get_permission_string(current_permission, cur_perm_string,
+                          sizeof(cur_perm_string));
+
+    printf("failed to change mode of '%s' from %04o (%s) to %04o (%s)\n",
+           pathname, current_permission, cur_perm_string, new_permission,
+           new_perm_string);
+}
 
 int handle_change_mods(cmd_args_t* args, char* argv[], char* envp[]) {
     struct stat status;
@@ -22,28 +44,36 @@ int handle_change_mods(cmd_args_t* args, char* argv[], char* envp[]) {
             fprintf(stderr,
                     "xmod: cannot access '%s': No such file or directory\n",
                     argv[i]);
+            if (args->options.verbose) print_fail_call(argv[i], args);
             continue;
         }
 
-        if(is_slink(&status)) {
-            if(get_status(argv[i], &status)) {
+        if (is_slink(&status)) {
+            if (get_status(argv[i], &status)) {
                 fprintf(stderr,
-                    "xmod: cannot operate on dangling symlink '%s'\n",
-                    argv[i]);
+                        "xmod: cannot operate on dangling symlink '%s'\n",
+                        argv[i]);
+                if (args->options.verbose) print_fail_call(argv[i], args);
+
                 continue;
             }
         }
 
         if ((err = change_perms(argv[i], args, &status)) != 0) {
-            fprintf(stderr, "xmod: %s\n", strerror(err));
-            return err;
+            fprintf(stderr, "xmod: changing permissions of '%s': %s\n", argv[i],
+                    strerror(err));
+            if (args->options.verbose) print_fail_call(argv[i], args);
+
+            continue;
         }
 
         lock_process();
         if (args->options.recursive && is_dir(&status)) {
             if ((err = recursive_change_mod(argv[i], args, argv, envp)) != 0) {
                 fprintf(stderr, "xmod: %s\n", strerror(err));
-                return err;
+                if (args->options.verbose) print_fail_call(argv[i], args);
+
+                continue;
             }
         }
     }
@@ -61,7 +91,7 @@ int change_perms(const char* pathname, cmd_args_t* args, struct stat* status) {
     // Always verbose, needs change accounting for options
 
     if ((res = chmod(pathname, new_permission))) {
-        return res;
+        return errno;
     }
 
     update_file_status_pinfo(current_permission != new_permission);
