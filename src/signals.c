@@ -17,19 +17,7 @@
 static bool waiting = false;
 static time_t last_recv;
 
-bool is_waiting() {
-    return waiting;
-}
-
-void lock_wait_process() {
-    int wstat;
-    while (1) {
-        if (waiting)
-            continue;
-        if (wait(&wstat) > 0)
-            break;
-    }
-}
+bool is_waiting() { return waiting; }
 
 void lock_process() {
     while (waiting) {
@@ -47,19 +35,16 @@ void wait_for_children() {
 /**
  * @brief Function that handles input when SIGINT received
  */
-void handle_sig_int() {
-}
+void handle_sig_int() {}
 
 /**
  * @brief Handler to be called when SIGINT is received
  */
 void sig_int_process(int signo) {
-    errno = 0;
-
     write_signal_recv_log(signo);
 
     if (waiting) {
-        exit(1);
+        set_and_exit(-SIGINT);
     }
     waiting = true;
 
@@ -69,13 +54,14 @@ void sig_int_process(int signo) {
 
         wait_for_children();
 
-        printf("Do you want to exit? (y/Y to exit or other to continue)\n");
+        dprintf(STDERR_FILENO,
+                "Do you want to exit? (y/Y or other to continue)\n");
         char c = get_clean_char();
         switch (toupper(c)) {
             case 'Y':
                 killpg(getpgrp(), SIGINT);
                 write_signal_send_group_log(getpgrp(), SIGINT);
-                exit(1);
+                set_and_exit(-SIGINT);
                 break;
             default:
                 killpg(getpgrp(), SIGCONT);
@@ -122,11 +108,10 @@ int setup_log_signals() {
 
 /**
  * @brief Handler to be called when SIGCONT is received
- * SIGCONT in the program context is received when the 
+ * SIGCONT in the program context is received when the
  *user wants to continue execution after SIGINT
  */
 void sig_cont_process(int signo) {
-    errno = 0;
     write_signal_recv_log(signo);
     if (waiting) {
         // printf("Continue process\n");
@@ -142,6 +127,10 @@ void sig_recv_children(int signo) {
     errno = 0;
     write_signal_recv_log(signo);
     last_recv = time(NULL);
+}
+
+void sig_chld(int signo) {
+    write_signal_recv_log(signo);
 }
 
 int setup_handlers() {
@@ -185,7 +174,16 @@ int setup_handlers() {
     new.sa_mask = smask;
     new.sa_flags = 0;
 
-    if (sigaction(SIGUSR1, &new, &old) == -1) {
+    if (sigaction(SIGUSR1, &new, &old) == -1)  {
+        perror("sigaction");
+        return ERR_SIGACTION;
+    }
+
+    new.sa_handler = sig_chld;
+    new.sa_mask = smask;
+    new.sa_flags = 0;
+
+    if (sigaction(SIGCHLD, &new, &old) == -1) {
         perror("sigaction");
         return ERR_SIGACTION;
     }

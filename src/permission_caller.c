@@ -11,7 +11,7 @@
 #include "../include/process.h"
 #include "../include/signals.h"
 
-int handle_change_mods(cmd_args_t *args, char *argv[], char *envp[]) {
+int handle_change_mods(cmd_args_t* args, char* argv[], char* envp[]) {
     struct stat status;
     int err;
 
@@ -26,8 +26,7 @@ int handle_change_mods(cmd_args_t *args, char *argv[], char *envp[]) {
         }
 
         if ((err = change_perms(argv[i], args, &status)) != 0) {
-            fprintf(stderr,
-                    "xmod: %s\n", strerror(err));
+            fprintf(stderr, "xmod: %s\n", strerror(err));
             return err;
         }
 
@@ -35,8 +34,7 @@ int handle_change_mods(cmd_args_t *args, char *argv[], char *envp[]) {
         if (args->options.recursive && is_dir(&status)) {
             // printf("folder: %s\n", argv[i]);
             if ((err = recursive_change_mod(argv[i], args, argv, envp)) != 0) {
-                fprintf(stderr,
-                        "xmod: %s\n", strerror(err));
+                fprintf(stderr, "xmod: %s\n", strerror(err));
                 return err;
             }
         } else {
@@ -47,7 +45,7 @@ int handle_change_mods(cmd_args_t *args, char *argv[], char *envp[]) {
     return 0;
 }
 
-int change_perms(const char *pathname, cmd_args_t *args, struct stat *status) {
+int change_perms(const char* pathname, cmd_args_t* args, struct stat* status) {
     int res;
 
     mode_t current_permission = get_access_perms(status), new_permission = 0;
@@ -69,9 +67,9 @@ int change_perms(const char *pathname, cmd_args_t *args, struct stat *status) {
     return 0;
 }
 
-int get_new_perms(const char *pathname,
-                  const perm_operation_t *const permissions,
-                  mode_t current_perm, mode_t *new_perm) {
+int get_new_perms(const char* pathname,
+                  const perm_operation_t* const permissions,
+                  mode_t current_perm, mode_t* new_perm) {
     int permission_types[3] = {permissions->permission_types.type_o,
                                permissions->permission_types.type_g,
                                permissions->permission_types.type_u};
@@ -90,7 +88,9 @@ int get_new_perms(const char *pathname,
 
         // new permissions for read, write and execute
 
-        permission_digit = ((permissions->permission_octal) / get_octal_offset(offset)) % OCTAL_BASE;
+        permission_digit =
+            ((permissions->permission_octal) / get_octal_offset(offset)) %
+            OCTAL_BASE;
 
         int new_r = (permission_digit / READ_VAL) * READ_VAL;
         rest_r = permission_digit % READ_VAL;
@@ -133,7 +133,7 @@ int get_octal_offset(int offset) {
 }
 
 int print_chmod_call(mode_t current_permission, mode_t new_permission,
-                     const char *pathname, const cmd_args_t *const args) {
+                     const char* pathname, const cmd_args_t* const args) {
     char new_perm_string[10], cur_perm_string[10];
     get_permission_string(new_permission, new_perm_string,
                           sizeof(new_perm_string));
@@ -153,9 +153,9 @@ int print_chmod_call(mode_t current_permission, mode_t new_permission,
     return 0;
 }
 
-void get_permission_string(mode_t permission, char *perm_string,
+void get_permission_string(mode_t permission, char* perm_string,
                            size_t buffer_size) {
-    char *permission_substrings[8] = {"---", "--x", "-w-", "-wx",
+    char* permission_substrings[8] = {"---", "--x", "-w-", "-wx",
                                       "r--", "r-x", "rw-", "rwx"};
 
     char permission_octal[5] = "";
@@ -170,11 +170,10 @@ void get_permission_string(mode_t permission, char *perm_string,
              permission_substrings[digit2], permission_substrings[digit3]);
 }
 
-void octal_to_string(mode_t octal, char *output) {
+void octal_to_string(mode_t octal, char* output) {
     int size_string = 5;  // 4 digits + null terminator
 
     snprintf(output, size_string, "%o", octal);
     snprintf(output, size_string, "%.*d%o",
-             (int)(size_string - strlen(output) - 1),
-             0, octal);
+             (int)(size_string - strlen(output) - 1), 0, octal);
 }

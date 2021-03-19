@@ -6,6 +6,8 @@
 #include <stdlib.h>
 #include <string.h>
 
+#include "../include/aux.h"
+
 /**
  * @brief Parse the options
  * The options are optional. This function will fill a cmd_args_t with valuable
@@ -73,18 +75,18 @@ int parse_args(cmd_args_t* args, int argc, char* argv[], char* envp[]) {
     int opt, next_op_idx;
     if ((opt = parse_options(&args->options, &next_op_idx, argc, argv)) != 0) {
         fprintf(stderr, "xmod: invalid option: '-%c'\n%s\n", opt, USAGE);
-        exit(BAD_OPTION);
+        set_and_exit(BAD_OPTION);
     }
 
     if (next_op_idx >= argc) {
         fprintf(stderr, "xmod: missing MODE\n%s\n", USAGE);
-        exit(BAD_ARGS);
+        set_and_exit(BAD_ARGS);
     }
 
     if (parse_mode(argv[next_op_idx], &args->mode) != 0) {
         fprintf(stderr, "xmod: invalid mode: '%s'\n%s\n", argv[next_op_idx],
                 USAGE);
-        exit(BAD_MODE);
+        set_and_exit(BAD_MODE);
     }
 
     args->files_start = next_op_idx + 1;
