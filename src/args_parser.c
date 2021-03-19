@@ -98,6 +98,8 @@ int parse_args(cmd_args_t* args, int argc, char* argv[], char* envp[]) {
         exit(BAD_ARGS);
     }
 
+    trim_leading_path_slash(args, argv);
+
     return 0;
 }
 
@@ -249,4 +251,14 @@ char get_sum_perms(char* perms) {
     }
 
     return sum + '0';
+}
+
+void trim_leading_path_slash(cmd_args_t* args, char* argv[]) {
+    for (size_t i = args->files_start; i < args->files_end; i++) {
+        if (argv[i] && *argv[i]) {
+            size_t current_index = strlen(argv[i]) - 1;
+            while (argv[i][current_index] == '/' && current_index > 0)
+                argv[i][current_index--] = 0;
+        }
+    }
 }

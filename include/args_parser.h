@@ -1,9 +1,9 @@
 #ifndef INCLUDE_ARGS_PARSER_H_
 #define INCLUDE_ARGS_PARSER_H_
 
-#include <sys/stat.h>
-#include <stddef.h>
 #include <stdbool.h>
+#include <stddef.h>
+#include <sys/stat.h>
 
 #include "error/exit_codes.h"
 
@@ -19,7 +19,7 @@
 #define USAGE "USAGE: xmod [-vcR] MODE/OCTAL file/dir"
 
 /**
- * Structure containing the information about the various command options
+ * @brief Structure containing the information about the various command options
  */
 typedef struct cmd_options {
     bool verbose;
@@ -28,12 +28,15 @@ typedef struct cmd_options {
 } cmd_options_t;
 
 /**
- * Enumerates the different changes to a user's type
+ * @brief Enumerates the different changes to a user's type
  */
-typedef enum { ADD, REMOVE, SUBSTITUTE, UNCHANGED } perm_change_type;
+typedef enum { ADD,
+               REMOVE,
+               SUBSTITUTE,
+               UNCHANGED } perm_change_type;
 
 /**
- * Defines the type of permission change to make to each user
+ * @brief Defines the type of permission change to make to each user
  */
 typedef struct {
     perm_change_type type_u;
@@ -42,7 +45,7 @@ typedef struct {
 } perm_changes_t;
 
 /**
- * Defines a permission operation.
+ * @brief Defines a permission operation.
  *
  * A permission operation is given by its octal value, as well as the type of
  * change for each user type (since it might not want to SUBSTITUTE values not
@@ -54,7 +57,7 @@ typedef struct {
 } perm_operation_t;
 
 /**
- * Struct containing all the information about the command arguments
+ * @brief Struct containing all the information about the command arguments
  */
 typedef struct cmd_args {
     cmd_options_t options;
@@ -64,7 +67,7 @@ typedef struct cmd_args {
 } cmd_args_t;
 
 /**
- * Parses the command line arguments of the command.
+ * @brief Parses the command line arguments of the command.
  *
  * @param cmd_args_t the command arguments options
  * @param argc the number of command line arguments
@@ -74,7 +77,7 @@ typedef struct cmd_args {
 int parse_args(cmd_args_t* args, int argc, char* argv[], char* envp[]);
 
 /**
- * Constructor of a perm_changes_t object.
+ * @brief Constructor of a perm_changes_t object.
  *
  * @param type_u the 'user' permission change type
  * @param type_g the 'group' permission change type
@@ -86,14 +89,14 @@ perm_changes_t create_perm_changes_t(perm_change_type type_u,
                                      perm_change_type type_o);
 
 /**
- * Parsed the xmod mode given by the command line arguments.
+ * @brief Parsed the xmod mode given by the command line arguments.
  *
  * @param mode the mode to parse
  */
 int parse_mode(char* mode, perm_operation_t* perms);
 
 /**
- * Parses a given mode in octal into a perm_operation_t object.
+ * @brief Parses a given mode in octal into a perm_operation_t object.
  *
  * @param mode the mode to parse
  * @param type the permission change types for the users
@@ -101,7 +104,7 @@ int parse_mode(char* mode, perm_operation_t* perms);
 int parse_octal_mode(char* mode, perm_changes_t type, perm_operation_t* perms);
 
 /**
- * Parses a given mode given in text mode into a perm_operation_t object.
+ * @brief Parses a given mode given in text mode into a perm_operation_t object.
  *
  * @param mode the mode to parse
  */
@@ -115,10 +118,15 @@ int parse_text_mode(char* mode, perm_operation_t* perms);
 char parse_user_type_perms(char* user_perms);
 
 /**
- * Gets the total sum for the permission of a given user.
+ * @brief Gets the total sum for the permission of a given user.
  *
  * @param perms the permissions to calculate
  */
 char get_sum_perms(char* perms);
+
+/**
+ * @brief Trims the existing leading path slashes from all given file paths
+ */
+void trim_leading_path_slash(cmd_args_t* args, char* argv[]);
 
 #endif  // INCLUDE_ARGS_PARSER_H_
