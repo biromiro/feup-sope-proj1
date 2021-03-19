@@ -41,14 +41,13 @@ void setup_envp(clock_ms_t start_time) {
 
 void init_log_info() {
     clock_ms_t start_time = 0;
-    char * env_start;
+    char* env_start;
     if (is_root_process()) {
         read_curr_time_ms(&start_time);
         setup_envp(start_time);
     } else {
         env_start = getenv("PROC_START_TIME_MS");
-        if(env_start != NULL)
-            start_time = atol(env_start);
+        if (env_start != NULL) start_time = atol(env_start);
     }
     log_info.begin = start_time;
     log_info.file_descriptor = 0;
@@ -86,8 +85,8 @@ int write_log(enum Event event, const char* info) {
     clock_ms_t instant = current_time_ms - log_info.begin;
 
     char out[128] = "";
-    snprintf(out, sizeof(out), "%lu ; %d ; %s ; %s\n", instant,
-             pid, event_to_string[event], info);
+    snprintf(out, sizeof(out), "%lu ; %d ; %s ; %s\n", instant, pid,
+             event_to_string[event], info);
 
     struct flock lock;
     memset(&lock, 0, sizeof(lock));

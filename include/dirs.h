@@ -14,8 +14,7 @@
  *
  * @return an error value.
  **/
-int recursive_change_mod(const char* pathname,
-                         cmd_args_t* args,
-                         char* argv[], char* envp[]);
+int recursive_change_mod(const char* pathname, cmd_args_t* args, char* argv[],
+                         char* envp[]);
 
 #endif  // INCLUDE_DIRS_H_

@@ -16,7 +16,7 @@ int get_status(const char* const pathname, struct stat* status) {
 int get_lstatus(const char* const pathname, struct stat* status) {
     int err;
 
-    if((err = lstat(pathname, status))) {
+    if ((err = lstat(pathname, status))) {
         return errno;
     }
 
