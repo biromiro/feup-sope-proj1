@@ -114,6 +114,8 @@ int recursive_change_mod(const char* pathname, cmd_args_t* args, char* argv[],
     DIR* directory = opendir(pathname);
 
     if (directory == NULL) {
+        fprintf(stderr, "xmod: cannot read directory '%s': %s\n", pathname,
+                strerror(errno));
         return errno;
     }
 
@@ -151,12 +153,11 @@ int recursive_change_mod(const char* pathname, cmd_args_t* args, char* argv[],
         } else {
             lock_process();
             if (change_perms(new_path, args, &status) != 0) {
+                dprintf(STDERR_FILENO,
+                        "xmod: changing permissions of '%s: %s\n", new_path,
+                        strerror(errno));
+                if (args->options.verbose) print_fail_call(new_path, args);
                 if (errno == EACCES || errno == EPERM || errno == EROFS) {
-                    dprintf(STDERR_FILENO,
-                            "xmod: changing permissions of '%s: %s\n", new_path,
-                            strerror(errno));
-                    if (args->options.verbose) print_fail_call(new_path, args);
-
                     continue;
                 }
 
@@ -170,10 +171,14 @@ int recursive_change_mod(const char* pathname, cmd_args_t* args, char* argv[],
 
     if (errno != 0) {
         closedir(directory);
+        fprintf(stderr, "xmod: cannot read directory '%s': %s\n", pathname,
+                strerror(errno));
         return errno;
     }
 
     if (closedir(directory)) {
+        fprintf(stderr, "xmod: cannot close directory '%s': %s\n", pathname,
+                strerror(errno));
         return errno;
     }
 

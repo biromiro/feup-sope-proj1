@@ -70,7 +70,6 @@ int handle_change_mods(cmd_args_t* args, char* argv[], char* envp[]) {
         lock_process();
         if (args->options.recursive && is_dir(&status)) {
             if ((err = recursive_change_mod(argv[i], args, argv, envp)) != 0) {
-                fprintf(stderr, "xmod: %s\n", strerror(err));
                 if (args->options.verbose) print_fail_call(argv[i], args);
 
                 continue;
