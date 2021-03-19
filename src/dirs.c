@@ -42,11 +42,11 @@ int try_enter_dir(DIR* directory, cmd_args_t* args, char* argv[],
                    // print both on parent and on child process
     lock_process();
     int id = fork();
+    reset_handlers();  // after fork child has the same pipe
+                       // descriptors as parent, this lessens the
+                       // chance of interference
 
     if (id == 0) {
-        reset_handlers();  // after fork child has the same pipe
-                           // descriptors as parent, this lessens the
-                           // chance of interference
         closedir(directory);
 
         setup_argv(args, argv, new_path);
@@ -58,12 +58,10 @@ int try_enter_dir(DIR* directory, cmd_args_t* args, char* argv[],
 
         lock_process();
         if (execve("xmod", argv, environ)) {
-            perror("exec");
             return errno;
         }
     } else if (id == -1) {
         closedir(directory);
-        perror("fork error");
         return errno;
     } else {
         update_pid_pinfo(id);
@@ -110,15 +108,12 @@ int recursive_change_mod(const char* pathname, cmd_args_t* args, char* argv[],
                          char* envp[]) {
     // used find ..  -printf '%M %p\n' | wc -l, and  ./xmod .. | wc -l, to test
     // if this func works correctly
-
-    // printf("IN %s-------\n", pathname);
     struct stat status;
     int err;
 
     DIR* directory = opendir(pathname);
 
     if (directory == NULL) {
-        perror("ERROR WHILE OPENING DIRECTORY");
         return errno;
     }
 
@@ -133,22 +128,17 @@ int recursive_change_mod(const char* pathname, cmd_args_t* args, char* argv[],
 
         snprintf(new_path, kPath_size, "%s/%s", pathname,
                  directory_entry->d_name);
-        // printf("%s\n", new_path);
-        // printf("CUR DIR: %s length %d", newPath, directory_entry->d_reclen);
 
         if (get_lstatus(new_path, &status)) {
             closedir(directory);
             return errno;
         }
 
-        if(is_slink(&status)) {
-            printf("neither symbolic link '%s' nor referent has been changed\n", new_path);
+        if (is_slink(&status)) {
+            printf("neither symbolic link '%s' nor referent has been changed\n",
+                   new_path);
             continue;
         }
-        // printf(" is dir: %d access mode: %o\n", is_dir(&status),
-        //       get_access_perms(&status));
-
-        // lock_process();
 
         update_file_pinfo(new_path);
 
@@ -162,7 +152,6 @@ int recursive_change_mod(const char* pathname, cmd_args_t* args, char* argv[],
             lock_process();
             if (change_perms(new_path, args, &status) != 0) {
                 closedir(directory);
-                perror("ERROR WHILE CHANGING PERMISSION!");
                 return errno;
             }
         }
@@ -172,18 +161,14 @@ int recursive_change_mod(const char* pathname, cmd_args_t* args, char* argv[],
 
     if (errno != 0) {
         closedir(directory);
-        perror("ERROR GETTING NEXT DIR");
         return errno;
     }
 
     if (closedir(directory)) {
-        perror("ERROR WHILE CLOSING DIR");
         return errno;
     }
 
     lock_process();
-
-    // printf("LEAVING %s----------\n", pathname);
 
     return 0;
 }

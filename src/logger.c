@@ -70,7 +70,6 @@ int write_log_format(const char* format, ...) {
     va_end(valist);
 
     if (err < 0) {
-        perror("log print");
         return errno;
     }
 
@@ -108,11 +107,10 @@ int write_log(enum Event event, const char* info) {
     memset(&lock, 0, sizeof(lock));
     lock.l_type = F_UNLCK;
     if (fcntl(log_info.file_descriptor, F_SETLK, &lock)) {
-        perror("error releasing log file lock");
+        return errno;
     }
 
     if (err < 0) {
-        perror("log print");
         return errno;
     }
 
@@ -128,14 +126,12 @@ int open_log() {
     if (is_root_process()) {
         if ((log_info.file_descriptor =
                  creat(path_name, S_IRWXU | S_IRWXG | S_IRWXO)) == -1) {
-            perror("open/create log (creat)");
             return errno;
         }
     } else {
         if ((log_info.file_descriptor = open(path_name, O_APPEND | O_WRONLY)) ==
             -1) {
             printf("%s\n", path_name);
-            perror("open/create log (open)");
             return errno;
         }
     }
@@ -149,7 +145,6 @@ int close_log() {
 
     int err = close(log_info.file_descriptor);
     if (err) {
-        perror("closing log");
         return errno;
     }
 
