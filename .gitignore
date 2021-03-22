@@ -7,6 +7,10 @@
 *.obj
 *.elf
 
+# Output program
+xmod
+
+
 # Linker output
 *.ilk
 *.map
@@ -51,3 +55,7 @@ modules.order
 Module.symvers
 Mkfile.old
 dkms.conf
+test/
+
+tests/valgrind.log
+tests/cpplint.log
